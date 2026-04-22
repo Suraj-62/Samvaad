@@ -63,5 +63,23 @@ VITE_GOOGLE_CLIENT_ID=your_google_client_id
 ## 🤝 Contributing
 Contributions are welcome! Feel free to open an issue or submit a pull request.
 
+## 🐳 Docker Deployment
+
+You can run the entire stack using Docker and Docker Compose:
+
+1. **Build and Start**:
+   ```bash
+   docker-compose up --build -d
+   ```
+
+2. **Access**:
+   - Frontend: `http://localhost` (on port 80)
+   - Backend: `http://localhost:5000`
+
+3. **Stop**:
+   ```bash
+   docker-compose down
+   ```
+
 ---
 Built with ❤️ for better interview preparation.
