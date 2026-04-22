@@ -155,6 +155,10 @@ export const googleAuth = async (req, res) => {
       if (user.isBlocked) {
         return res.status(403).json({ message: 'Your account has been blocked by the administrator.' });
       }
+
+      if (user.role === 'interviewer' && !user.isApproved) {
+        return res.status(403).json({ message: 'Your account is pending admin approval.' });
+      }
     }
 
     res.json({

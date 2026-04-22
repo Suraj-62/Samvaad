@@ -1,12 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 export default function SignIn() {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const [isLogin, setIsLogin] = useState(location.pathname !== '/signup');
   const [role, setRole] = useState('student'); // student or interviewer
   
   const [name, setName] = useState('');
@@ -24,6 +25,12 @@ export default function SignIn() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  useEffect(() => {
+    setIsLogin(location.pathname !== '/signup');
+    setError('');
+    setSuccess('');
+  }, [location.pathname]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -39,8 +46,16 @@ export default function SignIn() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
         });
-        console.log('Login response status:', res.status);
-        const data = await res.json();
+        
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          throw new Error(text || 'Login failed: Server returned an error');
+        }
+        
         if (!res.ok) throw new Error(data.message || 'Login failed');
         
         localStorage.setItem('userInfo', JSON.stringify(data));
@@ -72,8 +87,16 @@ export default function SignIn() {
           method: 'POST',
           body: formData,
         });
-        console.log('Registration response status:', res.status);
-        const data = await res.json();
+        
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          throw new Error(text || 'Registration failed: Server returned an error');
+        }
+
         if (!res.ok) throw new Error(data.message || 'Registration failed');
         
         if (role === 'interviewer') {

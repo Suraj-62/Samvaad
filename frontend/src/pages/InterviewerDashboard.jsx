@@ -499,7 +499,7 @@ export default function InterviewerDashboard() {
                   {userInfo.resumePath && (
                     <div style={{ marginTop: '10px' }}>
                       <a 
-                        href={`http://localhost:5000/${userInfo.resumePath?.replace('\\', '/')}`} 
+                        href={`${BACKEND_URL}/${userInfo.resumePath?.replace('\\', '/')}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         style={{ color: 'var(--accent-color)', fontSize: '0.85rem', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}

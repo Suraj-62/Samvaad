@@ -17,6 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<SignIn />} />
+        <Route path="/signup" element={<SignIn />} />
         <Route path="/dashboard" element={<DashboardHub />} />
         <Route path="/configurator" element={<Configurator />} />
         <Route path="/human-mock" element={<HumanMockInterview />} />

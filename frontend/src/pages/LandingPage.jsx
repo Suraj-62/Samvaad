@@ -30,7 +30,7 @@ export default function LandingPage() {
           <a href="#features">Features</a>
           <a href="#how-it-works">How it Works</a>
           <a href="#pricing">Pricing</a>
-          <button className="btn-orange" style={{ padding: '0.5rem 1.5rem' }} onClick={() => navigate('/login')}>
+          <button className="btn-orange" style={{ padding: '0.5rem 1.5rem' }} onClick={() => navigate('/signup')}>
             Start Free
           </button>
         </div>

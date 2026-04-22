@@ -31,6 +31,15 @@ app.use('/api/interview', interviewRoutes);
 // Auth Routes mounting
 app.use('/api/auth', authRoutes);
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  const status = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+  res.status(status).json({ message });
+});
+
+
 // Serve uploads folder statically
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
