@@ -2,7 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { sendRegistrationEmail, sendApprovalEmail } from '../services/emailService.js';
-import { PDFParse } from 'pdf-parse';
+// import { PDFParse } from 'pdf-parse'; // Moved to dynamic import for Vercel compatibility
 import fs from 'fs';
 import { OAuth2Client } from 'google-auth-library';
 
@@ -47,12 +47,16 @@ export const registerUser = async (req, res) => {
 
     if (resumeFile && resumeFile.mimetype === 'application/pdf') {
       try {
+        console.log('Attempting to parse PDF resume...');
+        const { PDFParse } = await import('pdf-parse');
         const dataBuffer = resumeFile.buffer;
         const parser = new PDFParse({ data: dataBuffer });
         const textResult = await parser.getText();
         resumeText = textResult.text;
+        console.log('Resume parsed successfully, length:', resumeText.length);
       } catch (err) {
-        console.error("Error parsing resume during registration:", err);
+        console.error("Error parsing resume during registration (likely native module issue on Vercel):", err);
+        // Continue registration without parsing if PDF parser fails
       }
     }
 
@@ -260,12 +264,14 @@ export const updateUserProfile = async (req, res) => {
           user.resumePath = `uploads/${Date.now()}-${file.originalname}`;
           // Also parse and update resume text
           try {
+            console.log('Attempting to parse PDF resume during profile update...');
+            const { PDFParse } = await import('pdf-parse');
             const dataBuffer = file.buffer;
             const parser = new PDFParse({ data: dataBuffer });
             const textResult = await parser.getText();
             user.resumeText = textResult.text;
           } catch (err) {
-            console.error("Error parsing resume during profile update:", err);
+            console.error("Error parsing resume during profile update (likely native module issue on Vercel):", err);
           }
         }
       }
