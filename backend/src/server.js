@@ -44,10 +44,10 @@ app.get('/api/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Backend securely re-initialized.`);
-  console.log(`Available endpoints:`);
-  console.log(`  POST http://localhost:${PORT}/api/interview/book-human`);
-  console.log(`  POST http://localhost:${PORT}/api/interview/verify-meeting`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+export default app;

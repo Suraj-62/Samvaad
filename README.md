@@ -30,28 +30,15 @@ samvad/
 
 ## 🌐 Deployment Instructions
 
-### 1. Backend (Koyeb or Railway)
-Since Render's free tier is limited, **Koyeb** is a great alternative for the backend:
+### ⚡ All-in-One Deployment (Vercel)
+The easiest way is to deploy both the frontend and backend on **Vercel** as a monorepo:
 
-1. Create a new service on [Koyeb](https://www.koyeb.com/).
-2. Connect your GitHub repository.
-3. Set the **Root Directory** to `backend`.
-4. Koyeb will automatically use the `Dockerfile`.
-5. Add your **Environment Variables** in the Koyeb dashboard.
-
-### 2. Frontend (Netlify or Vercel)
-**Netlify** is excellent for the frontend:
-
-1. Create a new site on [Netlify](https://www.netlify.com/).
-2. Connect your GitHub repository.
-3. **Base Directory**: `frontend`
-4. **Build Command**: `npm run build`
-5. **Publish Directory**: `dist`
-6. Add your **Environment Variables**:
-   - `VITE_BACKEND_URL`: Your Koyeb backend URL.
-   - `VITE_GOOGLE_CLIENT_ID`: Your Google Client ID.
-
-*Note: I've already added a `public/_redirects` file to handle React Router navigation on Netlify.*
+1. Push your code to GitHub.
+2. Go to [Vercel](https://vercel.com/) and click **New Project**.
+3. Select this repository.
+4. Vercel will automatically detect the `vercel.json` and configure the project.
+5. **Environment Variables**: Add all your backend variables (`MONGO_URI`, `JWT_SECRET`, etc.) and frontend variables (`VITE_GOOGLE_CLIENT_ID`) in the Vercel dashboard.
+6. **Important**: Set `VITE_BACKEND_URL` to your own Vercel domain followed by `/api` (e.g., `https://your-app.vercel.app`).
 
 
 ### 3. Run the Project
