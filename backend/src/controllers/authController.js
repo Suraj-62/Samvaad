@@ -42,12 +42,12 @@ export const registerUser = async (req, res) => {
       isApproved = false; // Interviewers need approval
     }
 
-    const resumePath = req.file ? req.file.path : null;
+    const resumeFile = req.file;
     let resumeText = '';
 
-    if (resumePath && req.file.mimetype === 'application/pdf') {
+    if (resumeFile && resumeFile.mimetype === 'application/pdf') {
       try {
-        const dataBuffer = fs.readFileSync(resumePath);
+        const dataBuffer = resumeFile.buffer;
         const parser = new PDFParse({ data: dataBuffer });
         const textResult = await parser.getText();
         resumeText = textResult.text;
@@ -55,6 +55,8 @@ export const registerUser = async (req, res) => {
         console.error("Error parsing resume during registration:", err);
       }
     }
+
+    const resumePath = resumeFile ? `uploads/${Date.now()}-${resumeFile.originalname}` : null;
 
     const user = await User.create({
       name,
@@ -250,13 +252,15 @@ export const updateUserProfile = async (req, res) => {
       
       if (req.files) {
         if (req.files.profilePic) {
-          user.profilePic = req.files.profilePic[0].path;
+          const file = req.files.profilePic[0];
+          user.profilePic = `uploads/${Date.now()}-${file.originalname}`;
         }
         if (req.files.resume) {
-          user.resumePath = req.files.resume[0].path;
+          const file = req.files.resume[0];
+          user.resumePath = `uploads/${Date.now()}-${file.originalname}`;
           // Also parse and update resume text
           try {
-            const dataBuffer = fs.readFileSync(user.resumePath);
+            const dataBuffer = file.buffer;
             const parser = new PDFParse({ data: dataBuffer });
             const textResult = await parser.getText();
             user.resumeText = textResult.text;
