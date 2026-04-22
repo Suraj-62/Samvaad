@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BACKEND_URL } from '../services/api';
 
 export default function Configurator() {
   const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function Configurator() {
           const formDataUpload = new FormData();
           formDataUpload.append('resume', resumeFile);
           
-          const res = await fetch('http://localhost:5000/api/interview/parse-resume', {
+          const res = await fetch(`${BACKEND_URL}/api/interview/parse-resume`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${userInfo.token}` },
             body: formDataUpload,

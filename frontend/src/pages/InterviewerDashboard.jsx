@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BACKEND_URL } from '../services/api';
 import { fetchAllBookings, addAvailability, fetchInterviewerAvailability, deleteAvailability, confirmBooking, rejectBooking, createInstantMeeting } from '../services/api';
 
 export default function InterviewerDashboard() {
@@ -23,7 +24,7 @@ export default function InterviewerDashboard() {
   // Profile Form State
   const [editName, setEditName] = useState(userInfo.name || '');
   const [profileFile, setProfileFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `http://localhost:5000/${userInfo.profilePic.replace('\\', '/')}` : '');
+  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}` : '');
   const [resumeFile, setResumeFile] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -151,7 +152,7 @@ export default function InterviewerDashboard() {
         formData.append('resume', resumeFile);
       }
 
-      const res = await fetch('http://localhost:5000/api/auth/profile', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${userInfo.token}`
@@ -304,7 +305,7 @@ export default function InterviewerDashboard() {
               </div>
               <div style={{ 
                 width: '48px', height: '48px', borderRadius: '50%', 
-                background: userInfo.profilePic ? `url(http://localhost:5000/${userInfo.profilePic.replace('\\', '/')}) center/cover` : 'linear-gradient(135deg, #06b6d4, #0891b2)', 
+                background: userInfo.profilePic ? `url(${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}) center/cover` : 'linear-gradient(135deg, #06b6d4, #0891b2)', 
                 display: 'flex', alignItems: 'center', justifyContent: 'center', 
                 color: '#fff', fontSize: '1.2rem', fontWeight: '800', border: '2px solid rgba(255,255,255,0.1)' 
               }}>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { createGroupDiscussion } from '../services/api';
+import { createGroupDiscussion, BACKEND_URL } from '../services/api';
 
 export default function DashboardHub() {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ export default function DashboardHub() {
   // Profile Form State
   const [editName, setEditName] = useState(userInfo.name || '');
   const [profileFile, setProfileFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `http://localhost:5000/${userInfo.profilePic.replace('\\', '/')}` : '');
+  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}` : '');
   const [updating, setUpdating] = useState(false);
   const [resumeFile, setResumeFile] = useState(null);
   const [message, setMessage] = useState('');
@@ -93,7 +93,7 @@ export default function DashboardHub() {
     
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/interview/stats', {
+        const res = await fetch(`${BACKEND_URL}/api/interview/stats`, {
           headers: { 'Authorization': `Bearer ${userInfo.token}` }
         });
         const data = await res.json();
@@ -143,7 +143,7 @@ export default function DashboardHub() {
         formData.append('resume', resumeFile);
       }
 
-      const res = await fetch('http://localhost:5000/api/auth/profile', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${userInfo.token}`
@@ -442,7 +442,7 @@ export default function DashboardHub() {
                   {userInfo.hasResume && (
                     <div style={{ marginTop: '10px' }}>
                       <a 
-                        href={`http://localhost:5000/${userInfo.resumePath?.replace('\\', '/')}`} 
+                        href={`${BACKEND_URL}/${userInfo.resumePath?.replace('\\', '/')}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         style={{ color: 'var(--accent-color)', fontSize: '0.85rem', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}

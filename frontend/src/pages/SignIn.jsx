@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 export default function SignIn() {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
@@ -32,7 +34,7 @@ export default function SignIn() {
       if (isLogin) {
         console.log('Attempting login for:', email);
         // Login API
-        const res = await fetch('http://localhost:5000/api/auth/login', {
+        const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, password })
@@ -66,7 +68,7 @@ export default function SignIn() {
           formData.append('jobRole', jobRole);
         }
 
-        const res = await fetch('http://localhost:5000/api/auth/register', {
+        const res = await fetch(`${BACKEND_URL}/api/auth/register`, {
           method: 'POST',
           body: formData,
         });
@@ -95,7 +97,7 @@ export default function SignIn() {
     setError('');
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })

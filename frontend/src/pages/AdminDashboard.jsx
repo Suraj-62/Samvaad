@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { BACKEND_URL } from '../services/api';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function AdminDashboard() {
   // Profile Form State
   const [editName, setEditName] = useState(userInfo.name || '');
   const [profileFile, setProfileFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `http://localhost:5000/${userInfo.profilePic.replace('\\', '/')}` : '');
+  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}` : '');
   const [updating, setUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -39,7 +40,7 @@ export default function AdminDashboard() {
   const fetchAllUsers = async () => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/api/auth/users', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/users`, {
         headers: { 'Authorization': `Bearer ${userInfo.token}` }
       });
       const data = await res.json();
@@ -54,7 +55,7 @@ export default function AdminDashboard() {
 
   const handleApprove = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/approve/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/approve/${id}`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${userInfo.token}` }
       });
@@ -67,7 +68,7 @@ export default function AdminDashboard() {
 
   const handleBlockToggle = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/users/${id}/block`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/users/${id}/block`, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${userInfo.token}` }
       });
@@ -82,7 +83,7 @@ export default function AdminDashboard() {
   const handleDelete = async (id) => {
     if(!window.confirm("CRITICAL: Permanent deletion is irreversible. Proceed?")) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/users/${id}`, {
+      const res = await fetch(`${BACKEND_URL}/api/auth/users/${id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${userInfo.token}` }
       });
@@ -114,7 +115,7 @@ export default function AdminDashboard() {
         formData.append('profilePic', profileFile);
       }
 
-      const res = await fetch('http://localhost:5000/api/auth/profile', {
+      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${userInfo.token}`
@@ -520,7 +521,7 @@ const Table = ({ data, isInterviewer = false, isPending = false, onBlock, onDele
             <td style={{ padding: '1rem' }}>
               {user.resumePath ? (
                 <a 
-                  href={`http://localhost:5000/${user.resumePath.replace('\\', '/')}`} 
+                  href={`${BACKEND_URL}/${user.resumePath.replace('\\', '/')}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   style={{ color: 'var(--accent-color)', fontSize: '0.75rem', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/interview';
+export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+const API_BASE_URL = `${BACKEND_URL}/api/interview`;
 
 export const bookHumanInterview = async (details) => {
   const response = await axios.post(`${API_BASE_URL}/book-human`, details);
