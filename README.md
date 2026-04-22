@@ -28,33 +28,31 @@ samvad/
 └── backend/           # Node.js + Express server
 ```
 
-## ⚙️ Setup Instructions
+## 🌐 Deployment Instructions
 
-### 1. Backend Setup
-```bash
-cd backend
-npm install
-```
-Create a `.env` file in `backend/`:
-```env
-PORT=5000
-MONGO_URI=your_mongodb_uri
-JWT_SECRET=your_secret
-EMAIL_USER=your_gmail
-EMAIL_PASS=your_app_password
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-```
+### 1. Backend (Koyeb or Railway)
+Since Render's free tier is limited, **Koyeb** is a great alternative for the backend:
 
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-```
-Create a `.env` file in `frontend/`:
-```env
-VITE_GOOGLE_CLIENT_ID=your_google_client_id
-```
+1. Create a new service on [Koyeb](https://www.koyeb.com/).
+2. Connect your GitHub repository.
+3. Set the **Root Directory** to `backend`.
+4. Koyeb will automatically use the `Dockerfile`.
+5. Add your **Environment Variables** in the Koyeb dashboard.
+
+### 2. Frontend (Netlify or Vercel)
+**Netlify** is excellent for the frontend:
+
+1. Create a new site on [Netlify](https://www.netlify.com/).
+2. Connect your GitHub repository.
+3. **Base Directory**: `frontend`
+4. **Build Command**: `npm run build`
+5. **Publish Directory**: `dist`
+6. Add your **Environment Variables**:
+   - `VITE_BACKEND_URL`: Your Koyeb backend URL.
+   - `VITE_GOOGLE_CLIENT_ID`: Your Google Client ID.
+
+*Note: I've already added a `public/_redirects` file to handle React Router navigation on Netlify.*
+
 
 ### 3. Run the Project
 - **Backend**: `npm run dev` (starts on port 5000)
