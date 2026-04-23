@@ -49,11 +49,17 @@ export default function SignIn() {
         
         let data;
         const contentType = res.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          data = await res.json();
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            data = await res.json();
+          } catch (e) {
+            console.error("JSON parse error:", e);
+            throw new Error("Server returned an invalid response. Please try again later.");
+          }
         } else {
           const text = await res.text();
-          throw new Error(text || 'Login failed: Server returned an error');
+          console.error("Non-JSON response:", text);
+          throw new Error("The server is currently unavailable or returned an error. Please contact support.");
         }
         
         if (!res.ok) throw new Error(data.message || 'Login failed');
@@ -90,11 +96,17 @@ export default function SignIn() {
         
         let data;
         const contentType = res.headers.get("content-type");
-        if (contentType && contentType.indexOf("application/json") !== -1) {
-          data = await res.json();
+        if (contentType && contentType.includes("application/json")) {
+          try {
+            data = await res.json();
+          } catch (e) {
+            console.error("JSON parse error:", e);
+            throw new Error("Server returned an invalid response. Please try again later.");
+          }
         } else {
           const text = await res.text();
-          throw new Error(text || 'Registration failed: Server returned an error');
+          console.error("Non-JSON response:", text);
+          throw new Error("The server is currently unavailable or returned an error. Please contact support.");
         }
 
         if (!res.ok) throw new Error(data.message || 'Registration failed');
@@ -125,7 +137,14 @@ export default function SignIn() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })
       });
-      const data = await res.json();
+      let data;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        throw new Error("Google Authentication service is currently unreachable.");
+      }
+      
       if (!res.ok) throw new Error(data.message || 'Google login failed');
 
       localStorage.setItem('userInfo', JSON.stringify(data));

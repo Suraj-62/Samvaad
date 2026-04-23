@@ -4,7 +4,7 @@ import HumanBooking from '../models/HumanBooking.js';
 import GroupDiscussion from '../models/GroupDiscussion.js';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
-const pdf = require('pdf-parse');
+const { PDFParse } = require('pdf-parse');
 import User from '../models/User.js';
 import fs from 'fs';
 import Availability from '../models/Availability.js';
@@ -248,10 +248,11 @@ export const parseResume = async (req, res) => {
       return res.status(400).json({ success: false, message: 'No resume file uploaded' });
     }
 
-    const dataBuffer = fs.readFileSync(req.file.path);
+    const dataBuffer = req.file.buffer;
     
-    // Use pdf-parse correctly
-    const data = await pdf(dataBuffer);
+    // Use PDFParse correctly
+    const parser = new PDFParse({ data: dataBuffer });
+    const data = await parser.getText();
     const extractedText = data.text;
     
     // Save to user profile if logged in

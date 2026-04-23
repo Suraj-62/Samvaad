@@ -20,8 +20,9 @@ import {
 import { protect } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 
+const storage = multer.memoryStorage();
 const upload = multer({ 
-  dest: 'uploads/',
+  storage,
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
 
