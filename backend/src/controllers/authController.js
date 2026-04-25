@@ -60,7 +60,7 @@ export const registerUser = async (req, res) => {
         try {
           console.log('Attempting to parse PDF resume...');
           const { PDFParse } = await import('pdf-parse');
-          const parser = new PDFParse(resumeFile.buffer);
+          const parser = new PDFParse({ data: resumeFile.buffer });
           const data = await parser.getText();
           resumeText = data.text;
           console.log('Resume parsed successfully, length:', resumeText.length);
@@ -284,7 +284,7 @@ export const updateUserProfile = async (req, res) => {
           try {
             console.log('Attempting to parse PDF resume during profile update...');
             const { PDFParse } = await import('pdf-parse');
-            const parser = new PDFParse(file.buffer);
+            const parser = new PDFParse({ data: file.buffer });
             const textResult = await parser.getText();
             user.resumeText = textResult.text;
           } catch (err) {

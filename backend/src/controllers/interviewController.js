@@ -246,10 +246,12 @@ export const parseResume = async (req, res) => {
     }
 
     const dataBuffer = req.file.buffer;
+    const base64Data = dataBuffer.toString('base64');
+    const resumePath = `data:${req.file.mimetype};base64,${base64Data}`;
     
     // Use PDFParse correctly for version 2.4.5
     const { PDFParse } = await import('pdf-parse');
-    const parser = new PDFParse(dataBuffer);
+    const parser = new PDFParse({ data: dataBuffer });
     const data = await parser.getText();
     const extractedText = data.text;
     
@@ -257,7 +259,7 @@ export const parseResume = async (req, res) => {
     let userUpdated = false;
     if (req.user) {
       await User.findByIdAndUpdate(req.user._id, {
-        resumePath: req.file.path,
+        resumePath: resumePath,
         resumeText: extractedText
       });
       userUpdated = true;
