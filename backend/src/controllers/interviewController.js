@@ -2,7 +2,6 @@ import { sendPendingEmail, sendConfirmationEmail, sendInterviewerAlertEmail, sen
 import InterviewReport from '../models/InterviewReport.js';
 import HumanBooking from '../models/HumanBooking.js';
 import GroupDiscussion from '../models/GroupDiscussion.js';
-import pdf from 'pdf-parse';
 import User from '../models/User.js';
 import fs from 'fs';
 import Availability from '../models/Availability.js';
@@ -248,7 +247,8 @@ export const parseResume = async (req, res) => {
 
     const dataBuffer = req.file.buffer;
     
-    // Use PDFParse correctly
+    // Use pdf-parse correctly with dynamic import for Vercel/ESM
+    const pdf = (await import('pdf-parse')).default;
     const data = await pdf(dataBuffer);
     const extractedText = data.text;
     

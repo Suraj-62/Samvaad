@@ -272,10 +272,9 @@ export const updateUserProfile = async (req, res) => {
           // Also parse and update resume text
           try {
             console.log('Attempting to parse PDF resume during profile update...');
-            const { PDFParse } = await import('pdf-parse');
+            const pdf = (await import('pdf-parse')).default;
             const dataBuffer = file.buffer;
-            const parser = new PDFParse({ data: dataBuffer });
-            const textResult = await parser.getText();
+            const textResult = await pdf(dataBuffer);
             user.resumeText = textResult.text;
           } catch (err) {
             console.error("Error parsing resume during profile update (likely native module issue on Vercel):", err);
