@@ -116,7 +116,7 @@ export default function HumanInterviewBooking() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="input-group">
                   <label className="input-label">Target Role</label>
                   <input 
@@ -143,7 +143,7 @@ export default function HumanInterviewBooking() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="grid-2-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="input-group">
                   <label className="input-label">Select Date</label>
                   <select 
@@ -237,6 +237,14 @@ export default function HumanInterviewBooking() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-spinner { display: inline-block; }
+        
+        @media (max-width: 768px) {
+          .app-container { padding: 1rem !important; min-height: auto !important; }
+          .glass-panel { padding: 1.5rem !important; border-radius: 20px !important; }
+          .grid-2-col { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+          h1 { font-size: 1.6rem !important; }
+          .btn-primary { padding: 1rem !important; }
+        }
       `}</style>
     </div>
   );

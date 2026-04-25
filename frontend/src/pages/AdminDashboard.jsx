@@ -151,20 +151,20 @@ export default function AdminDashboard() {
   const distribution = [students.length, allInterviewers.length];
 
   if (loading && users.length === 0) return (
-    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#050505', color: 'var(--accent-color)' }}>
+    <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)', color: 'var(--accent-color)' }}>
       <div className="float-anim">Initializing Control Center...</div>
     </div>
   );
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050505', fontFamily: "'Outfit', sans-serif", overflow: 'hidden' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'Outfit', sans-serif", overflow: 'hidden' }}>
       
       {/* SIDEBAR */}
       <div style={{ 
         width: sidebarOpen ? '280px' : '80px', 
-        background: 'rgba(15, 10, 5, 0.95)', 
+        background: 'rgba(11, 11, 11, 0.98)', 
         backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(217, 119, 6, 0.1)',
+        borderRight: '1px solid var(--glass-border)',
         padding: '2rem 1rem',
         transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(180, 83, 9, 0.4)' }}>
+          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(245, 158, 11, 0.4)' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 10v3" />
               <path d="M6 6v11" />
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
 
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, padding: '2.5rem 4rem', overflowY: 'auto', position: 'relative' }}>
-        <div className="ambient-glow glow-1" style={{ width: '600px', height: '600px', top: '-10%', right: '-10%', opacity: 0.3 }}></div>
+        <div className="ambient-glow glow-1" style={{ width: '600px', height: '600px', top: '-10%', right: '-10%', opacity: 0.1, background: 'var(--accent-color)', filter: 'blur(100px)' }}></div>
         
         {/* TOP BAR */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>

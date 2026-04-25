@@ -207,14 +207,25 @@ export default function DashboardHub() {
   ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050505', fontFamily: "'Outfit', sans-serif" }}>
+    <div className="dashboard-container" style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'Outfit', sans-serif" }}>
       
+      {/* MOBILE HEADER */}
+      <div className="mobile-header" style={{ display: 'none', position: 'fixed', top: 0, left: 0, width: '100%', background: 'rgba(11, 11, 11, 0.95)', backdropFilter: 'blur(15px)', padding: '1rem', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, borderBottom: '1px solid var(--glass-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+          <div style={{ width: '32px', height: '32px', background: 'var(--accent-color)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M2 10v3" /><path d="M6 6v11" /><path d="M10 3v18" /><path d="M14 8v7" /><path d="M18 5v13" /><path d="M22 10v3" /></svg>
+          </div>
+          <span style={{ color: '#fff', fontSize: '1.1rem', fontWeight: '800' }}>SAMVAAD</span>
+        </div>
+        <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{ width: '36px', height: '36px', borderRadius: '50%', background: previewUrl ? `url(${previewUrl}) center/cover` : 'var(--accent-color)', border: '1px solid rgba(255,255,255,0.1)' }}></div>
+      </div>
+
       {/* SIDEBAR */}
-      <div style={{ 
+      <div className="sidebar" style={{ 
         width: '260px', 
-        background: 'rgba(15, 10, 5, 0.95)', 
+        background: 'rgba(11, 11, 11, 0.98)', 
         backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(217, 119, 6, 0.1)',
+        borderRight: '1px solid var(--glass-border)',
         padding: '2rem 1rem',
         display: 'flex',
         flexDirection: 'column',
@@ -222,7 +233,7 @@ export default function DashboardHub() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(180, 83, 9, 0.3)' }}>
+          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(245, 158, 11, 0.3)' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 10v3" />
               <path d="M6 6v11" />
@@ -245,12 +256,28 @@ export default function DashboardHub() {
         </div>
       </div>
 
+      {/* MOBILE BOTTOM NAV */}
+      <div className="bottom-nav" style={{ display: 'none', position: 'fixed', bottom: 0, left: 0, width: '100%', background: 'rgba(11, 11, 11, 0.95)', backdropFilter: 'blur(20px)', padding: '0.8rem 1.5rem', justifyContent: 'space-around', alignItems: 'center', zIndex: 1000, borderTop: '1px solid var(--glass-border)' }}>
+         <div onClick={() => setActiveTab('overview')} style={{ textAlign: 'center', color: activeTab === 'overview' ? 'var(--accent-color)' : '#94a3b8' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <div style={{ fontSize: '0.65rem', fontWeight: '700', marginTop: '4px' }}>HOME</div>
+         </div>
+         <div onClick={() => navigate('/human-mock-dashboard')} style={{ textAlign: 'center', color: '#94a3b8' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+            <div style={{ fontSize: '0.65rem', fontWeight: '700', marginTop: '4px' }}>ROOMS</div>
+         </div>
+         <div onClick={() => setActiveTab('profile')} style={{ textAlign: 'center', color: activeTab === 'profile' ? '#db2777' : '#94a3b8' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <div style={{ fontSize: '0.65rem', fontWeight: '700', marginTop: '4px' }}>PROFILE</div>
+         </div>
+      </div>
+
       {/* MAIN CONTENT */}
-      <div style={{ flex: 1, padding: '3rem 4rem', overflowY: 'auto', position: 'relative' }}>
-        <div className="ambient-glow glow-1" style={{ width: '500px', height: '500px', top: '-10%', right: '-10%', opacity: 0.1 }}></div>
+      <div className="main-content" style={{ flex: 1, padding: '3rem 4rem', overflowY: 'auto', position: 'relative' }}>
+        <div className="ambient-glow glow-1" style={{ width: '500px', height: '500px', top: '-10%', right: '-10%', opacity: 0.1, background: 'var(--accent-color)', filter: 'blur(100px)' }}></div>
 
         {/* HEADER AREA */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3.5rem' }}>
+        <div className="desktop-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '3.5rem' }}>
           <div>
             <h1 style={{ color: '#fff', fontSize: '2.8rem', marginBottom: '0.5rem', fontWeight: '800' }}>
               {activeTab === 'profile' ? 'Profile Settings' : `Welcome back, ${userInfo.name}`}
@@ -294,8 +321,8 @@ export default function DashboardHub() {
             {isDropdownOpen && (
               <div style={{ 
                 position: 'absolute', top: '110%', right: '0', width: '220px', 
-                background: 'rgba(15, 10, 5, 0.95)', backdropFilter: 'blur(20px)',
-                borderRadius: '16px', border: '1px solid rgba(217, 119, 6, 0.2)',
+                background: 'rgba(11, 11, 11, 0.98)', backdropFilter: 'blur(20px)',
+                borderRadius: '16px', border: '1px solid var(--glass-border)',
                 boxShadow: '0 15px 35px rgba(0,0,0,0.6)', padding: '0.8rem',
                 zIndex: 1000
               }}>
@@ -316,17 +343,17 @@ export default function DashboardHub() {
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
             
             {/* TIER 1: STATS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
               <StatBox title="Sessions" value={stats.totalSessions} icon="play" color="var(--accent-color)" />
               <StatBox title="Avg Score" value={`${stats.avgScore}%`} icon="award" color="#10b981" />
               <StatBox title="Accuracy" value={`${stats.accuracy}%`} icon="zap" color="#f59e0b" />
             </div>
 
             {/* TIER 2: GROUP DISCUSSION (CENTERPIECE) */}
-            <div className="glass-panel" style={{ 
+            <div className="glass-panel gd-panel" style={{ 
               padding: '2.5rem', 
-              border: '1px solid rgba(139, 92, 246, 0.2)', 
-              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(5, 5, 5, 0.5) 100%)',
+              border: '1px solid var(--glass-border)', 
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(11, 11, 11, 0.5) 100%)',
               display: 'grid',
               gridTemplateColumns: '1fr 1.5fr',
               gap: '3rem',
@@ -334,12 +361,12 @@ export default function DashboardHub() {
               position: 'relative',
               overflow: 'hidden'
             }}>
-               <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(139, 92, 246, 0.1)', filter: 'blur(60px)', borderRadius: '50%' }}></div>
+               <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(245, 158, 11, 0.1)', filter: 'blur(60px)', borderRadius: '50%' }}></div>
                
                <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginBottom: '1.5rem' }}>
-                    <div style={{ padding: '12px', background: 'rgba(139, 92, 246, 0.15)', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <div style={{ padding: '12px', background: 'rgba(245, 158, 11, 0.15)', borderRadius: '16px', border: '1px solid var(--glass-border)' }}>
+                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
                     <h2 style={{ margin: 0, fontSize: '2rem', color: '#fff' }}>Group Discussion</h2>
                   </div>
@@ -414,7 +441,7 @@ export default function DashboardHub() {
             </div>
 
             {/* TIER 3: HISTORY & SKILLS */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '2.5rem' }}>
+            <div className="bottom-grid" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '2.5rem' }}>
               
               {/* RECENT HISTORY (MOVED DOWN) */}
               <div className="glass-panel" style={{ padding: '2.5rem' }}>
@@ -470,10 +497,10 @@ export default function DashboardHub() {
               </div>
 
               {/* UPCOMING MEETINGS (NEW SECTION) */}
-              <div className="glass-panel" style={{ padding: '2.5rem' }}>
+              <div className="glass-panel bookings-panel" style={{ padding: '2.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                    <h3 style={{ fontSize: '1.5rem', margin: 0 }}>Upcoming Interviews</h3>
-                   <div style={{ padding: '4px 12px', background: 'rgba(139, 92, 246, 0.1)', color: 'var(--purple-glow)', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800' }}>
+                   <div style={{ padding: '4px 12px', background: 'rgba(245, 158, 11, 0.1)', color: 'var(--accent-color)', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800' }}>
                      {humanBookings.length} ACTIVE
                    </div>
                 </div>
@@ -530,8 +557,8 @@ export default function DashboardHub() {
         )}
 
         {activeTab === 'profile' && (
-          <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem' }}>
-            <form onSubmit={handleUpdateProfile} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '3rem' }}>
+          <div className="glass-panel animate-fade-in profile-container" style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem' }}>
+            <form onSubmit={handleUpdateProfile} className="profile-form" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '3rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' }}>
                  <div style={{ position: 'relative', width: '160px', height: '160px' }}>
                     <div style={{ 
@@ -590,6 +617,32 @@ export default function DashboardHub() {
       </div>
     </div>
   );
+}
+
+const styleBlock = `
+  @media (max-width: 1024px) {
+    .main-content { padding: 2rem !important; }
+    .bottom-grid { grid-template-columns: 1fr !important; }
+    .gd-panel { grid-template-columns: 1fr !important; gap: 2rem !important; }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar, .desktop-header { display: none !important; }
+    .mobile-header, .bottom-nav { display: flex !important; }
+    .main-content { padding: 6rem 1.5rem 6rem 1.5rem !important; }
+    .stats-grid { grid-template-columns: 1fr !important; }
+    .emails-grid { grid-template-columns: 1fr !important; }
+    .profile-form { grid-template-columns: 1fr !important; gap: 2rem !important; }
+    h1 { font-size: 2rem !important; }
+    .gd-panel h2 { font-size: 1.5rem !important; }
+    .bookings-panel { order: -1; }
+  }
+`;
+
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = styleBlock;
+  document.head.appendChild(style);
 }
 
 const HistoryItem = ({ role, date, score, status }) => (

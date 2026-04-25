@@ -100,9 +100,12 @@ export const bookHumanInterview = async (req, res) => {
     const newBooking = new HumanBooking({
       name: details.name,
       email: details.email,
-      domain: details.topic,
-      experience: details.role,
+      domain: details.role,
+      experience: details.experience,
       slot: details.slot,
+      rawDate: selectedDate,
+      startTime: startTime,
+      endTime: endTime,
       meetingId: details.meetingId,
       meetingPassword: details.meetingPassword,
       interviewer: interviewer._id,
@@ -170,14 +173,13 @@ export const cancelBooking = async (req, res) => {
     }
 
     // Free up the availability slot
-    const [datePart, timePart] = booking.slot.split(' at ');
-    const [startStr, endStr] = timePart.split(' - ');
-    const startTime = parseAMPM(startStr);
-    const endTime = parseAMPM(endStr);
-
-    // Find the slot and free it
     await Availability.findOneAndUpdate(
-      { interviewer: booking.interviewer, date: { $regex: datePart }, startTime, endTime }, 
+      { 
+        interviewer: booking.interviewer, 
+        date: booking.rawDate, 
+        startTime: booking.startTime, 
+        endTime: booking.endTime 
+      }, 
       { isBooked: false }
     );
 

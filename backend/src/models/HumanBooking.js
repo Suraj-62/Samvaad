@@ -20,6 +20,15 @@ const humanBookingSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    rawDate: {
+      type: String, // YYYY-MM-DD
+    },
+    startTime: {
+      type: String, // HH:mm
+    },
+    endTime: {
+      type: String, // HH:mm
+    },
     meetingId: {
       type: String,
       required: true,

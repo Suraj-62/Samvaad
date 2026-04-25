@@ -238,14 +238,14 @@ export default function InterviewerDashboard() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#050505', fontFamily: "'Outfit', sans-serif" }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)', fontFamily: "'Outfit', sans-serif" }}>
       
       {/* SIDEBAR */}
       <div style={{ 
         width: '260px', 
-        background: 'rgba(15, 10, 5, 0.95)', 
+        background: 'rgba(11, 11, 11, 0.98)', 
         backdropFilter: 'blur(20px)',
-        borderRight: '1px solid rgba(217, 119, 6, 0.1)',
+        borderRight: '1px solid var(--glass-border)',
         padding: '2rem 1rem',
         display: 'flex',
         flexDirection: 'column',
@@ -253,7 +253,7 @@ export default function InterviewerDashboard() {
         zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 0.5rem' }}>
-          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(180, 83, 9, 0.3)' }}>
+          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(245, 158, 11, 0.3)' }}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2 10v3" /><path d="M6 6v11" /><path d="M10 3v18" /><path d="M14 8v7" /><path d="M18 5v13" /><path d="M22 10v3" />
             </svg>
@@ -276,7 +276,7 @@ export default function InterviewerDashboard() {
 
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, padding: '3rem 4rem', overflowY: 'auto', position: 'relative' }}>
-        <div className="ambient-glow glow-1" style={{ width: '500px', height: '500px', top: '-10%', right: '-10%', opacity: 0.1 }}></div>
+        <div className="ambient-glow glow-1" style={{ width: '500px', height: '500px', top: '-10%', right: '-10%', opacity: 0.1, background: 'var(--accent-color)', filter: 'blur(100px)' }}></div>
 
         {/* HEADER AREA */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3.5rem' }}>
