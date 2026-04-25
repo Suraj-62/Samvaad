@@ -247,9 +247,10 @@ export const parseResume = async (req, res) => {
 
     const dataBuffer = req.file.buffer;
     
-    // Use pdf-parse correctly with dynamic import for Vercel/ESM
-    const pdf = (await import('pdf-parse')).default;
-    const data = await pdf(dataBuffer);
+    // Use PDFParse correctly for version 2.4.5
+    const { PDFParse } = await import('pdf-parse');
+    const parser = new PDFParse(dataBuffer);
+    const data = await parser.getText();
     const extractedText = data.text;
     
     // Save to user profile if logged in
