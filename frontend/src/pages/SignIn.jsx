@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+const getBackendUrl = () => {
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+  if (envUrl) return envUrl.endsWith('/api') ? envUrl.slice(0, -4) : envUrl;
+  return window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin;
+};
+
+const BACKEND_URL = getBackendUrl();
 
 export default function SignIn() {
   const navigate = useNavigate();

@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-export const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin);
+const getBackendUrl = () => {
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+  if (envUrl) return envUrl.endsWith('/api') ? envUrl.slice(0, -4) : envUrl;
+  return window.location.hostname === 'localhost' ? 'http://localhost:5000' : window.location.origin;
+};
+
+export const BACKEND_URL = getBackendUrl();
 const API_BASE_URL = `${BACKEND_URL}/api/interview`;
 
 export const bookHumanInterview = async (details) => {
