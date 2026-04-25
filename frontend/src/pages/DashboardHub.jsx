@@ -21,7 +21,7 @@ export default function DashboardHub() {
   // Profile Form State
   const [editName, setEditName] = useState(userInfo.name || '');
   const [profileFile, setProfileFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}` : '');
+  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? (userInfo.profilePic.startsWith('data:') ? userInfo.profilePic : `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}`) : '');
   const [updating, setUpdating] = useState(false);
   const [resumeFile, setResumeFile] = useState(null);
   const [message, setMessage] = useState('');
@@ -279,129 +279,166 @@ export default function DashboardHub() {
         </div>
 
         {activeTab === 'overview' && (
-          <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '2.5rem' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-                <StatBox title="Sessions" value={stats.totalSessions} icon="play" color="var(--accent-color)" />
-                <StatBox title="Avg Score" value={`${stats.avgScore}%`} icon="award" color="#10b981" />
-                <StatBox title="Accuracy" value={`${stats.accuracy}%`} icon="zap" color="#f59e0b" />
-              </div>
-
-              <div className="glass-panel" style={{ padding: '2rem' }}>
-                <h3 style={{ marginBottom: '1.5rem' }}>Recent History</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {stats.history.length > 0 ? stats.history.map((item, idx) => (
-                    <HistoryItem key={idx} role={item.role} date={item.date} score={item.score} status={item.status} />
-                  )) : <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>No interview history found. Start your first session!</p>}
-                </div>
-              </div>
+          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
+            
+            {/* TIER 1: STATS */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+              <StatBox title="Sessions" value={stats.totalSessions} icon="play" color="var(--accent-color)" />
+              <StatBox title="Avg Score" value={`${stats.avgScore}%`} icon="award" color="#10b981" />
+              <StatBox title="Accuracy" value={`${stats.accuracy}%`} icon="zap" color="#f59e0b" />
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-              <div className="glass-panel" style={{ padding: '2rem', background: 'linear-gradient(180deg, rgba(180, 83, 9, 0.1) 0%, transparent 100%)' }}>
-                 <h3 style={{ marginBottom: '1.5rem' }}>Ready to Practice?</h3>
-                 <button onClick={() => navigate('/configurator')} className="btn-primary" style={{ width: '100%', marginBottom: '1.5rem' }}>Book Mock Interview</button>
-                 
-                 <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '0.5rem' }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={userInfo.hasResume ? "#10b981" : "#f59e0b"} strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                      <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#fff' }}>Resume Status</span>
+            {/* TIER 2: GROUP DISCUSSION (CENTERPIECE) */}
+            <div className="glass-panel" style={{ 
+              padding: '2.5rem', 
+              border: '1px solid rgba(139, 92, 246, 0.2)', 
+              background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(5, 5, 5, 0.5) 100%)',
+              display: 'grid',
+              gridTemplateColumns: '1fr 1.5fr',
+              gap: '3rem',
+              alignItems: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+               <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'rgba(139, 92, 246, 0.1)', filter: 'blur(60px)', borderRadius: '50%' }}></div>
+               
+               <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', marginBottom: '1.5rem' }}>
+                    <div style={{ padding: '12px', background: 'rgba(139, 92, 246, 0.15)', borderRadius: '16px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{userInfo.hasResume ? '✓ Resume Uploaded' : 'No Resume Uploaded'}</span>
-                      {userInfo.hasResume && <span style={{ fontSize: '0.7rem', color: '#10b981', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '4px' }}>ACTIVE</span>}
+                    <h2 style={{ margin: 0, fontSize: '2rem', color: '#fff' }}>Group Discussion</h2>
+                  </div>
+                  <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '2rem' }}>
+                    Collaborate with friends or colleagues in a real-time mock discussion. 
+                    Practice moderation, consensus building, and articulation.
+                  </p>
+                  
+                  <div style={{ padding: '1.2rem', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                      <div style={{ width: '8px', height: '8px', background: '#10b981', borderRadius: '50%' }}></div>
+                      <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#fff' }}>Quick Tip</span>
                     </div>
-                 </div>
-              </div>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Invite up to 5 members to join your private discussion room.</p>
+                  </div>
+               </div>
 
+               <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  <div className="input-group">
+                     <label className="input-label">Discussion Topic</label>
+                     <input 
+                       type="text" 
+                       className="input-field" 
+                       placeholder="e.g. AI Ethics in 2024" 
+                       value={groupTopic}
+                       onChange={(e) => setGroupTopic(e.target.value)}
+                     />
+                  </div>
+
+                  <div className="input-group">
+                     <label className="input-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        Invite Friends (Emails)
+                        <span style={{ color: 'var(--accent-color)' }}>{friendEmails.length}/5</span>
+                     </label>
+                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                        {friendEmails.map((email, idx) => (
+                           <input 
+                              key={idx}
+                              type="email" 
+                              className="input-field" 
+                              placeholder={`Email #${idx+1}`} 
+                              value={email}
+                              onChange={(e) => updateEmail(idx, e.target.value)}
+                              style={{ padding: '0.7rem 1rem', fontSize: '0.85rem' }}
+                              required={idx === 0}
+                           />
+                        ))}
+                        {friendEmails.length < 5 && (
+                           <button 
+                             type="button" 
+                             onClick={addEmailField}
+                             style={{ background: 'rgba(217, 119, 6, 0.1)', border: '1px dashed var(--accent-color)', color: 'var(--accent-color)', borderRadius: '12px', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '700', transition: 'all 0.3s' }}
+                           >
+                              + Add Member
+                           </button>
+                        )}
+                     </div>
+                  </div>
+
+                  {groupError && <div className="error-alert" style={{ margin: 0, fontSize: '0.85rem' }}>{groupError}</div>}
+                  {groupSuccess && <div className="success-alert" style={{ margin: 0, fontSize: '0.85rem' }}>{groupSuccess}</div>}
+
+                  <button 
+                    type="submit" 
+                    className="btn-primary" 
+                    disabled={creatingGroup}
+                    style={{ width: '100%', marginTop: '0.5rem' }}
+                  >
+                     {creatingGroup ? 'Sending Invites...' : 'Start Group Discussion'}
+                  </button>
+               </form>
+            </div>
+
+            {/* TIER 3: HISTORY & SKILLS */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: '2.5rem' }}>
+              
+              {/* RECENT HISTORY (MOVED DOWN) */}
               <div className="glass-panel" style={{ padding: '2.5rem' }}>
-                <h3 style={{ marginBottom: '2rem', fontSize: '1.4rem' }}>Skill Matrix</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem' }}>
-                  {skills.map(skill => (
-                    <div key={skill.name}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem' }}>
-                        <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>{skill.name}</span>
-                        <span style={{ color: '#fff', fontWeight: '800' }}>{skill.level}%</span>
-                      </div>
-                      <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <div style={{ width: `${skill.level}%`, height: '100%', background: skill.color, borderRadius: '10px', transition: 'width 1s' }}></div>
-                      </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
+                  <h3 style={{ fontSize: '1.5rem' }}>Recent History</h3>
+                  <button onClick={() => navigate('/configurator')} className="btn-outline" style={{ padding: '0.5rem 1.2rem', fontSize: '0.85rem' }}>New Session</button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  {stats.history.length > 0 ? stats.history.map((item, idx) => (
+                    <HistoryItem key={idx} role={item.role} date={item.date} score={item.score} status={item.status} />
+                  )) : (
+                    <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'rgba(255,255,255,0.01)', borderRadius: '24px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                       <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>No interview history found.</p>
+                       <button onClick={() => navigate('/configurator')} className="btn-primary">Start Your First Session</button>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
 
-              <div className="glass-panel" style={{ padding: '2rem', border: '1px solid rgba(139, 92, 246, 0.2)', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, transparent 100%)' }}>
-                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <div style={{ padding: '10px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              {/* SKILLS & RESUME */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+                <div className="glass-panel" style={{ padding: '2.5rem' }}>
+                  <h3 style={{ marginBottom: '2rem', fontSize: '1.4rem' }}>Performance Analysis</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.8rem' }}>
+                    {skills.map(skill => (
+                      <div key={skill.name}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem' }}>
+                          <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>{skill.name}</span>
+                          <span style={{ color: '#fff', fontWeight: '800' }}>{skill.level}%</span>
+                        </div>
+                        <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px', overflow: 'hidden' }}>
+                          <div style={{ width: `${skill.level}%`, height: '100%', background: skill.color, borderRadius: '100px', transition: 'width 1s' }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass-panel" style={{ padding: '2rem', background: 'rgba(255,255,255,0.02)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.2rem' }}>
+                    <div style={{ width: '40px', height: '40px', background: userInfo.hasResume ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={userInfo.hasResume ? "#10b981" : "#f59e0b"} strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                     </div>
                     <div>
-                       <h3 style={{ margin: 0 }}>Group Discussion</h3>
-                       <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Invite up to 5 friends to prepare together.</p>
+                      <h4 style={{ margin: 0, color: '#fff' }}>Resume Status</h4>
+                      <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{userInfo.hasResume ? 'Updated and Active' : 'Missing Resume'}</p>
                     </div>
-                 </div>
-
-                 <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                    <div className="input-group">
-                       <label className="input-label" style={{ fontSize: '0.75rem' }}>Discussion Topic</label>
-                       <input 
-                         type="text" 
-                         className="input-field" 
-                         placeholder="e.g. System Design Basics" 
-                         value={groupTopic}
-                         onChange={(e) => setGroupTopic(e.target.value)}
-                         style={{ padding: '0.8rem 1rem', fontSize: '0.9rem' }}
-                       />
-                    </div>
-
-                    <div className="input-group">
-                       <label className="input-label" style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-                          Friend Emails
-                          <span style={{ color: 'var(--text-secondary)' }}>{friendEmails.length}/5</span>
-                       </label>
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                          {friendEmails.map((email, idx) => (
-                             <input 
-                                key={idx}
-                                type="email" 
-                                className="input-field" 
-                                placeholder={`friend${idx+1}@gmail.com`} 
-                                value={email}
-                                onChange={(e) => updateEmail(idx, e.target.value)}
-                                style={{ padding: '0.8rem 1rem', fontSize: '0.9rem' }}
-                                required={idx === 0}
-                             />
-                          ))}
-                       </div>
-                       {friendEmails.length < 5 && (
-                          <button 
-                            type="button" 
-                            onClick={addEmailField}
-                            style={{ background: 'none', border: 'none', color: 'var(--accent-color)', fontSize: '0.8rem', cursor: 'pointer', marginTop: '8px', fontWeight: '700', padding: 0, textAlign: 'left' }}
-                          >
-                             + Add Another Friend
-                          </button>
-                       )}
-                    </div>
-
-                    {groupError && <div style={{ color: '#ef4444', fontSize: '0.8rem', background: 'rgba(239, 68, 68, 0.1)', padding: '0.6rem', borderRadius: '8px' }}>{groupError}</div>}
-                    {groupSuccess && <div style={{ color: '#10b981', fontSize: '0.8rem', background: 'rgba(16, 185, 129, 0.1)', padding: '0.6rem', borderRadius: '8px' }}>{groupSuccess}</div>}
-
-                    <button 
-                      type="submit" 
-                      className="btn-primary" 
-                      disabled={creatingGroup}
-                      style={{ width: '100%', padding: '1rem', marginTop: '0.5rem' }}
-                    >
-                       {creatingGroup ? 'Sending Invites...' : 'Create Group & Invite'}
-                    </button>
-                 </form>
+                  </div>
+                  <button onClick={() => setActiveTab('profile')} className="btn-outline" style={{ width: '100%', fontSize: '0.85rem' }}>
+                    {userInfo.hasResume ? 'Update Resume' : 'Upload Resume Now'}
+                  </button>
+                </div>
               </div>
 
             </div>
           </div>
         )}
+}
 
         {activeTab === 'profile' && (
           <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem' }}>
@@ -442,7 +479,8 @@ export default function DashboardHub() {
                   {userInfo.hasResume && (
                     <div style={{ marginTop: '10px' }}>
                       <a 
-                        href={`${BACKEND_URL}/${userInfo.resumePath?.replace('\\', '/')}`} 
+                        href={userInfo.resumePath?.startsWith('data:') ? userInfo.resumePath : `${BACKEND_URL}/${userInfo.resumePath?.replace('\\', '/')}`} 
+                        download="resume.pdf"
                         target="_blank" 
                         rel="noopener noreferrer"
                         style={{ color: 'var(--accent-color)', fontSize: '0.85rem', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}

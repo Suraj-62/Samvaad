@@ -26,22 +26,22 @@ const userSchema = new mongoose.Schema({
   jobRole: {
     type: String,
   },
-  resumePath: {
-    type: String,
+   resumePath: {
+    type: String, // Will store Base64 data for Vercel compatibility
   },
   resumeText: {
     type: String,
   },
   isApproved: {
     type: Boolean,
-    default: false, // Will be set to true immediately for students, false for interviewers until admin approves
+    default: false,
   },
   isBlocked: {
     type: Boolean,
     default: false,
   },
   profilePic: {
-    type: String,
+    type: String, // Will store Base64 data
     default: '',
   }
 }, {

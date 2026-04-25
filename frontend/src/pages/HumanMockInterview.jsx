@@ -7,26 +7,23 @@ export default function HumanMockInterview() {
   const config = location.state?.config;
   const meeting = location.state?.meeting;
   
-  const [scores, setScores] = useState({ technical: 0, communication: 0, confidence: 0 });
   const [role, setRole] = useState(config?.role || 'candidate');
+  const [remoteStream, setRemoteStream] = useState(null);
+  const [peerId, setPeerId] = useState('');
+  const [remotePeerId, setRemotePeerId] = useState('');
+  const [isJoined, setIsJoined] = useState(false);
 
-  const interviewerVideoRef = useRef(null);
-  const candidateVideoRef = useRef(null);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerInstance = useRef(null);
   const streamRef = useRef(null);
 
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
-  const [activeQuestion, setActiveQuestion] = useState('Wait for the interviewer to begin...');
   const [timer, setTimer] = useState(0);
   
-  const questionBank = [
-    "Tell me about a challenging project you've worked on.",
-    "How do you handle conflict in a team?",
-    "Explain the concept of closures in Javascript.",
-    "What is your greatest professional achievement?",
-    "Why do you want to work at this company?",
-    "Describe a time you failed and what you learned."
-  ];
+  // Unique room ID based on meeting ID
+  const roomId = meeting?.meetingId || 'samvaad-default-room';
 
   useEffect(() => {
     if (!config && !meeting) {
@@ -34,31 +31,65 @@ export default function HumanMockInterview() {
       return;
     }
     
-    async function setupMedia() {
+    // Load PeerJS from CDN dynamically
+    const script = document.createElement('script');
+    script.src = "https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js";
+    script.async = true;
+    script.onload = () => initPeer();
+    document.body.appendChild(script);
+
+    async function initPeer() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         streamRef.current = stream;
+        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+
+        // Create Peer with a predictable ID for the room
+        // One will be the 'host' (interviewer) and one 'guest' (candidate)
+        // Or we use the roomId + role to find each other
+        const myPeerId = `${roomId}-${role}`;
+        const otherPeerId = `${roomId}-${role === 'interviewer' ? 'candidate' : 'interviewer'}`;
         
-        // In a real P2P, we would only set local stream to one of these
-        // For simulation, we'll set it to our own role's video
-        if (role === 'interviewer' && interviewerVideoRef.current) {
-          interviewerVideoRef.current.srcObject = stream;
-        } else if (role === 'candidate' && candidateVideoRef.current) {
-          candidateVideoRef.current.srcObject = stream;
-        }
+        const peer = new window.Peer(myPeerId);
+        peerInstance.current = peer;
+
+        peer.on('open', (id) => {
+          setPeerId(id);
+          console.log('My peer ID is: ' + id);
+          // Try to call the other person
+          setTimeout(() => {
+            const call = peer.call(otherPeerId, stream);
+            if (call) {
+              call.on('stream', (userRemoteStream) => {
+                setRemoteStream(userRemoteStream);
+                if (remoteVideoRef.current) remoteVideoRef.current.srcObject = userRemoteStream;
+              });
+            }
+          }, 2000); // Wait for other to potentially open
+        });
+
+        peer.on('call', (call) => {
+          call.answer(stream);
+          call.on('stream', (userRemoteStream) => {
+            setRemoteStream(userRemoteStream);
+            if (remoteVideoRef.current) remoteVideoRef.current.srcObject = userRemoteStream;
+          });
+        });
+
       } catch (err) {
-        console.error("Media access denied:", err);
+        console.error("Media/Peer access denied:", err);
       }
     }
-    setupMedia();
 
     const interval = setInterval(() => setTimer(t => t + 1), 1000);
 
     return () => {
       clearInterval(interval);
       if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
+      if (peerInstance.current) peerInstance.current.destroy();
+      if (document.body.contains(script)) document.body.removeChild(script);
     };
-  }, [config, meeting, navigate, role]);
+  }, [config, meeting, navigate, role, roomId]);
 
   const toggleMute = () => {
     if (streamRef.current) {
@@ -87,131 +118,87 @@ export default function HumanMockInterview() {
   if (!config && !meeting) return null;
 
   return (
-    <div style={{ height: '100vh', width: '100vw', background: '#020617', margin: '-2rem', display: 'flex', flexDirection: 'column', color: '#fff', overflow: 'hidden' }}>
+    <div style={{ height: '100vh', width: '100vw', background: '#020617', margin: '-2rem', display: 'flex', flexDirection: 'column', color: '#fff', overflow: 'hidden', fontFamily: "'Outfit', sans-serif" }}>
       
       {/* HUD Header */}
-      <div style={{ padding: '0.75rem 2rem', background: 'rgba(15,23,42,0.95)', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
+      <div style={{ padding: '1rem 2.5rem', background: 'rgba(15,23,42,0.8)', backdropFilter: 'blur(10px)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div className="logo-icon" style={{ width: '32px', height: '32px', color: 'var(--purple-glow)' }}>
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 10v3" /><path d="M6 6v11" /><path d="M10 3v18" /><path d="M14 8v7" /><path d="M18 5v13" /><path d="M22 10v3" />
-             </svg>
+          <div style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M2 10v3" /><path d="M6 6v11" /><path d="M10 3v18" /><path d="M14 8v7" /><path d="M18 5v13" /><path d="M22 10v3" /></svg>
           </div>
           <div>
-            <div style={{ fontWeight: 'bold', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              Human Mock Session 
-              <span style={{ fontSize: '0.7rem', padding: '2px 8px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '100px', border: '1px solid rgba(34, 197, 94, 0.2)' }}>LIVE</span>
+            <div style={{ fontWeight: '800', fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              Live Interview Session 
+              <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 10px #ef4444' }}></div>
             </div>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Meeting ID: {meeting?.meetingId || 'Local-Dev'} • {formatTime(timer)}</div>
+            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '500' }}>ID: {roomId} • {formatTime(timer)} elapsed</div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem' }}>
-           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px' }}>
-              <button onClick={() => setRole('interviewer')} style={{ padding: '0.5rem 1rem', background: role === 'interviewer' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}>Interviewer</button>
-              <button onClick={() => setRole('candidate')} style={{ padding: '0.5rem 1rem', background: role === 'candidate' ? 'rgba(255,255,255,0.1)' : 'transparent', border: 'none', color: '#fff', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}>Candidate</button>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+           <div style={{ color: remoteStream ? '#10b981' : '#f59e0b', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
+             {remoteStream ? 'CONNECTED' : 'WAITING FOR PARTNER...'}
            </div>
-           <button onClick={handleEnd} className="btn-orange" style={{ padding: '0.5rem 1.5rem', background: '#ef4444', fontWeight: 'bold' }}>Leave Session</button>
+           <button onClick={handleEnd} className="btn-primary" style={{ background: '#ef4444', border: 'none', padding: '0.8rem 2rem' }}>End Session</button>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', padding: '1rem', gap: '1rem', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', padding: '2rem', gap: '2rem', position: 'relative' }}>
         
-        {/* Video Area */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          
-          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', minHeight: 0 }}>
-             {/* Left Video (Interviewer) */}
-             <div style={{ position: 'relative', background: '#000', borderRadius: '24px', overflow: 'hidden', border: role === 'interviewer' ? '2px solid #8b5cf6' : '1px solid rgba(255,255,255,0.1)', boxShadow: role === 'interviewer' ? '0 0 30px rgba(139, 92, 246, 0.2)' : 'none' }}>
-                <video ref={interviewerVideoRef} autoPlay playsInline muted={role === 'interviewer'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.6rem 1.2rem', borderRadius: '12px', backdropFilter: 'blur(8px)', fontSize: '0.9rem', fontWeight: '600', border: '1px solid rgba(255,255,255,0.1)' }}>
-                   Interviewer {role === 'interviewer' && '(You)'}
-                </div>
-                {role === 'interviewer' && <div className="scanning-bar"></div>}
-                {role !== 'interviewer' && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.4)' }}>
-                   <div style={{ textAlign: 'center' }}>
-                      <div className="pulse" style={{ width: '12px', height: '12px', background: '#ef4444', borderRadius: '50%', margin: '0 auto 10px' }}></div>
-                      <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Waiting for Interviewer...</span>
-                   </div>
-                </div>}
-             </div>
+        {/* Background Decorative */}
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', background: 'rgba(139, 92, 246, 0.03)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0 }}></div>
 
-             {/* Right Video (Candidate) */}
-             <div style={{ position: 'relative', background: '#000', borderRadius: '24px', overflow: 'hidden', border: role === 'candidate' ? '2px solid #06b6d4' : '1px solid rgba(255,255,255,0.1)', boxShadow: role === 'candidate' ? '0 0 30px rgba(6, 182, 212, 0.2)' : 'none' }}>
-                <video ref={candidateVideoRef} autoPlay playsInline muted={role === 'candidate'} style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
-                <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', background: 'rgba(15, 23, 42, 0.8)', padding: '0.6rem 1.2rem', borderRadius: '12px', backdropFilter: 'blur(8px)', fontSize: '0.9rem', fontWeight: '600', border: '1px solid rgba(255,255,255,0.1)' }}>
-                   Candidate {role === 'candidate' && '(You)'}
-                </div>
-                {role === 'candidate' && <div className="scanning-bar" style={{ animationDelay: '2s' }}></div>}
+        {/* Main Video (Remote) */}
+        <div style={{ flex: 1.5, position: 'relative', background: '#000', borderRadius: '32px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', zIndex: 1 }}>
+           <video ref={remoteVideoRef} autoPlay playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+           
+           {!remoteStream && (
+             <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(15, 23, 42, 0.9)' }}>
+                <div className="loader" style={{ width: '50px', height: '50px', border: '4px solid rgba(255,255,255,0.1)', borderTopColor: 'var(--accent-color)', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '1.5rem' }}></div>
+                <h3 style={{ margin: 0 }}>Waiting for {role === 'interviewer' ? 'Candidate' : 'Interviewer'}...</h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>Ensure they are using the same Meeting ID: {roomId}</p>
              </div>
-          </div>
+           )}
 
-          {/* Controls & Question */}
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-             <div className="glass-panel" style={{ flex: 1, padding: '1.25rem', border: '1px solid rgba(6, 182, 212, 0.3)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <div style={{ color: '#06b6d4', textTransform: 'uppercase', fontSize: '0.7rem', fontWeight: '900', letterSpacing: '0.2em', whiteSpace: 'nowrap' }}>Current Question</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: '500', color: '#fff' }}>"{activeQuestion}"</div>
-             </div>
-             
-             <div className="glass-panel" style={{ padding: '0.5rem', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={toggleMute} style={{ width: '50px', height: '50px', borderRadius: '12px', border: 'none', background: isMuted ? '#ef4444' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.3s' }}>
-                   {isMuted ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg> 
-                           : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>}
-                </button>
-                <button onClick={toggleCamera} style={{ width: '50px', height: '50px', borderRadius: '12px', border: 'none', background: isCameraOff ? '#ef4444' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.3s' }}>
-                   {isCameraOff ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>}
-                </button>
-             </div>
-          </div>
+           <div style={{ position: 'absolute', bottom: '2rem', left: '2rem', background: 'rgba(15, 23, 42, 0.7)', padding: '0.8rem 1.5rem', borderRadius: '16px', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: remoteStream ? '#10b981' : '#f59e0b' }}></div>
+              <span style={{ fontWeight: '700' }}>{role === 'interviewer' ? 'Candidate' : 'Interviewer'}</span>
+           </div>
         </div>
 
-        {/* AI Sidebar (Only for Interviewer) */}
-        {role === 'interviewer' && (
-           <div style={{ width: '380px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="glass-panel" style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
-                 <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#8b5cf6', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                    Question Bank
-                 </h4>
-                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {questionBank.map((q, i) => (
-                      <button 
-                        key={i} 
-                        onClick={() => setActiveQuestion(q)}
-                        style={{ textAlign: 'left', background: activeQuestion === q ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.02)', border: activeQuestion === q ? '1px solid #8b5cf6' : '1px solid rgba(255,255,255,0.05)', color: activeQuestion === q ? '#fff' : '#94a3b8', padding: '1rem', borderRadius: '12px', fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s' }}
-                      >
-                        {q}
-                      </button>
-                    ))}
-                 </div>
-              </div>
-
-              <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                  <h4 style={{ margin: 0, fontSize: '0.9rem', color: '#06b6d4', marginBottom: '1.25rem' }}>Live Assessment</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                     {Object.keys(scores).map(key => (
-                       <div key={key}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                             <span style={{ textTransform: 'capitalize', fontSize: '0.75rem', fontWeight: 'bold', color: '#94a3b8' }}>{key}</span>
-                             <span style={{ fontSize: '0.75rem', color: '#06b6d4' }}>{scores[key]}/10</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '4px' }}>
-                             {[1,2,3,4,5,6,7,8,9,10].map(val => (
-                               <div 
-                                 key={val} 
-                                 onClick={() => setScores({...scores, [key]: val})}
-                                 style={{ flex: 1, height: '6px', borderRadius: '2px', background: scores[key] >= val ? '#06b6d4' : 'rgba(255,255,255,0.1)', cursor: 'pointer', transition: 'all 0.2s' }}
-                               ></div>
-                             ))}
-                          </div>
-                       </div>
-                     ))}
-                  </div>
+        {/* Side Panel: Local Video & Controls */}
+        <div style={{ flex: 0.6, display: 'flex', flexDirection: 'column', gap: '2rem', zIndex: 1 }}>
+           
+           {/* Local Preview */}
+           <div style={{ flex: 1, position: 'relative', background: '#000', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <video ref={localVideoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+              <div style={{ position: 'absolute', bottom: '1.2rem', left: '1.2rem', background: 'rgba(15, 23, 42, 0.6)', padding: '0.5rem 1rem', borderRadius: '12px', backdropFilter: 'blur(8px)', fontSize: '0.8rem', fontWeight: '700' }}>
+                 You ({role})
               </div>
            </div>
-        )}
+
+           {/* Controls */}
+           <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
+              <button onClick={toggleMute} style={{ width: '60px', height: '60px', borderRadius: '18px', border: 'none', background: isMuted ? '#ef4444' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 {isMuted ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path></svg> 
+                         : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path></svg>}
+              </button>
+              <button onClick={toggleCamera} style={{ width: '60px', height: '60px', borderRadius: '18px', border: 'none', background: isCameraOff ? '#ef4444' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                 {isCameraOff ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                            : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>}
+              </button>
+           </div>
+        </div>
+
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader { border-top-color: transparent; }
+      `}</style>
+    </div>
+  );
+}
 
       <style>{`
         .scanning-bar {

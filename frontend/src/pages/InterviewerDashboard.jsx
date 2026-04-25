@@ -24,7 +24,7 @@ export default function InterviewerDashboard() {
   // Profile Form State
   const [editName, setEditName] = useState(userInfo.name || '');
   const [profileFile, setProfileFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}` : '');
+  const [previewUrl, setPreviewUrl] = useState(userInfo.profilePic ? (userInfo.profilePic.startsWith('data:') ? userInfo.profilePic : `${BACKEND_URL}/${userInfo.profilePic.replace('\\', '/')}`) : '');
   const [resumeFile, setResumeFile] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');

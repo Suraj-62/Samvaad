@@ -49,23 +49,27 @@ export const registerUser = async (req, res) => {
 
     const resumeFile = req.file;
     let resumeText = '';
+    let resumePath = null;
 
-    if (resumeFile && resumeFile.mimetype === 'application/pdf') {
-      try {
-        console.log('Attempting to parse PDF resume...');
-        const { PDFParse } = await import('pdf-parse');
-        const dataBuffer = resumeFile.buffer;
-        const parser = new PDFParse(dataBuffer);
-        const data = await parser.getText();
-        resumeText = data.text;
-        console.log('Resume parsed successfully, length:', resumeText.length);
-      } catch (err) {
-        console.error("Error parsing resume during registration:", err.message);
-        // Continue registration without parsing if PDF parser fails
+    if (resumeFile) {
+      // Convert buffer to Base64 for Vercel compatibility
+      const base64Data = resumeFile.buffer.toString('base64');
+      resumePath = `data:${resumeFile.mimetype};base64,${base64Data}`;
+
+      if (resumeFile.mimetype === 'application/pdf') {
+        try {
+          console.log('Attempting to parse PDF resume...');
+          const { PDFParse } = await import('pdf-parse');
+          const parser = new PDFParse(resumeFile.buffer);
+          const data = await parser.getText();
+          resumeText = data.text;
+          console.log('Resume parsed successfully, length:', resumeText.length);
+        } catch (err) {
+          console.error("Error parsing resume during registration:", err.message);
+          // We still have the base64 resumePath, so registration can continue
+        }
       }
     }
-
-    const resumePath = resumeFile ? `uploads/${Date.now()}-${resumeFile.originalname}` : null;
 
     const user = await User.create({
       name,
@@ -92,6 +96,7 @@ export const registerUser = async (req, res) => {
         isApproved: user.isApproved,
         profilePic: user.profilePic,
         hasResume: !!user.resumeText,
+        resumePath: user.resumePath,
         token: generateToken(user._id),
       });
     } else {
@@ -129,6 +134,7 @@ export const authUser = async (req, res) => {
         profilePic: user.profilePic,
         hasResume: !!user.resumeText,
         resumeText: user.resumeText,
+        resumePath: user.resumePath,
         token: generateToken(user._id),
       });
     } else {
@@ -183,6 +189,7 @@ export const googleAuth = async (req, res) => {
       isApproved: user.isApproved,
       profilePic: user.profilePic || picture,
       hasResume: !!user.resumeText,
+      resumePath: user.resumePath,
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -265,21 +272,23 @@ export const updateUserProfile = async (req, res) => {
       if (req.files) {
         if (req.files.profilePic) {
           const file = req.files.profilePic[0];
-          user.profilePic = `uploads/${Date.now()}-${file.originalname}`;
+          const base64Data = file.buffer.toString('base64');
+          user.profilePic = `data:${file.mimetype};base64,${base64Data}`;
         }
         if (req.files.resume) {
           const file = req.files.resume[0];
-          user.resumePath = `uploads/${Date.now()}-${file.originalname}`;
+          const base64Data = file.buffer.toString('base64');
+          user.resumePath = `data:${file.mimetype};base64,${base64Data}`;
+          
           // Also parse and update resume text
           try {
             console.log('Attempting to parse PDF resume during profile update...');
             const { PDFParse } = await import('pdf-parse');
-            const dataBuffer = file.buffer;
-            const parser = new PDFParse(dataBuffer);
+            const parser = new PDFParse(file.buffer);
             const textResult = await parser.getText();
             user.resumeText = textResult.text;
           } catch (err) {
-            console.error("Error parsing resume during profile update (likely native module issue on Vercel):", err);
+            console.error("Error parsing resume during profile update:", err);
           }
         }
       }
@@ -294,6 +303,7 @@ export const updateUserProfile = async (req, res) => {
         profilePic: updatedUser.profilePic,
         hasResume: !!updatedUser.resumeText,
         resumeText: updatedUser.resumeText,
+        resumePath: updatedUser.resumePath,
         token: generateToken(updatedUser._id),
       });
     } else {
