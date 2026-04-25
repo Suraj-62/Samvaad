@@ -196,9 +196,6 @@ export default function HumanMockInterview() {
         @keyframes spin { to { transform: rotate(360deg); } }
         .loader { border-top-color: transparent; }
       `}</style>
-    </div>
-  );
-}
 
       <style>{`
         .scanning-bar {

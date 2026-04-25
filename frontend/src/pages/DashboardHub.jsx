@@ -438,7 +438,6 @@ export default function DashboardHub() {
             </div>
           </div>
         )}
-}
 
         {activeTab === 'profile' && (
           <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', padding: '3rem' }}>
