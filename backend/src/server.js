@@ -9,9 +9,13 @@ import authRoutes from './routes/authRoutes.js';
 import connectDB from './config/db.js';
 
 
-connectDB();
-
 const app = express();
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+app.use(express.json());
 
 // Request logging middleware
 app.use((req, res, next) => {
@@ -19,11 +23,27 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
-app.use(express.json());
+// Middleware to ensure DB is connected
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('Database connection failed in middleware:', err.message);
+    res.status(500).json({ 
+      message: 'Database connection failed. Please check your MONGO_URI in Vercel settings.',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined 
+    });
+  }
+});
+
+// Log environment variable status (sanitized)
+console.log('Environment Check:', {
+  hasMongo: !!process.env.MONGO_URI,
+  hasJwt: !!process.env.JWT_SECRET,
+  hasGemini: !!process.env.GEMINI_API_KEY,
+  nodeEnv: process.env.NODE_ENV
+});
 
 // Main Interview AI Routes mounting 
 app.use('/api/interview', interviewRoutes);
@@ -33,11 +53,12 @@ app.use('/api/auth', authRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('Global Error Handler:', err);
   const status = err.status || 500;
   const message = err.message || 'Internal Server Error';
-  res.status(status).json({ message });
+  res.status(status).json({ message, details: process.env.NODE_ENV === 'development' ? err.stack : undefined });
 });
+
 
 
 // Serve uploads folder statically

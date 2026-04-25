@@ -10,10 +10,15 @@ import { OAuth2Client } from 'google-auth-library';
 let client;
 const getGoogleClient = () => {
   if (!client) {
-    client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      console.error('GOOGLE_CLIENT_ID is not defined in environment variables');
+    }
+    client = new OAuth2Client(clientId);
   }
   return client;
 };
+
 
 
 // Generate JWT
@@ -48,14 +53,13 @@ export const registerUser = async (req, res) => {
     if (resumeFile && resumeFile.mimetype === 'application/pdf') {
       try {
         console.log('Attempting to parse PDF resume...');
-        const { PDFParse } = await import('pdf-parse');
+        const pdf = (await import('pdf-parse')).default;
         const dataBuffer = resumeFile.buffer;
-        const parser = new PDFParse({ data: dataBuffer });
-        const textResult = await parser.getText();
-        resumeText = textResult.text;
+        const data = await pdf(dataBuffer);
+        resumeText = data.text;
         console.log('Resume parsed successfully, length:', resumeText.length);
       } catch (err) {
-        console.error("Error parsing resume during registration (likely native module issue on Vercel):", err);
+        console.error("Error parsing resume during registration:", err.message);
         // Continue registration without parsing if PDF parser fails
       }
     }
@@ -130,8 +134,11 @@ export const authUser = async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
-    console.error("Error in authUser:", error);
-    res.status(500).json({ message: 'Server error during login' });
+    console.error("Error in authUser (Login):", error);
+    res.status(500).json({ 
+      message: 'Server error during login', 
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined 
+    });
   }
 };
 

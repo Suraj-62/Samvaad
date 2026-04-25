@@ -2,9 +2,7 @@ import { sendPendingEmail, sendConfirmationEmail, sendInterviewerAlertEmail, sen
 import InterviewReport from '../models/InterviewReport.js';
 import HumanBooking from '../models/HumanBooking.js';
 import GroupDiscussion from '../models/GroupDiscussion.js';
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const { PDFParse } = require('pdf-parse');
+import pdf from 'pdf-parse';
 import User from '../models/User.js';
 import fs from 'fs';
 import Availability from '../models/Availability.js';
@@ -251,8 +249,7 @@ export const parseResume = async (req, res) => {
     const dataBuffer = req.file.buffer;
     
     // Use PDFParse correctly
-    const parser = new PDFParse({ data: dataBuffer });
-    const data = await parser.getText();
+    const data = await pdf(dataBuffer);
     const extractedText = data.text;
     
     // Save to user profile if logged in
@@ -368,7 +365,7 @@ export const confirmBookingPublic = async (req, res) => {
       <div style="font-family: sans-serif; text-align: center; padding: 50px;">
         <h1 style="color: #10b981;">✅ Interview Confirmed!</h1>
         <p>The student has been notified. You can see this in your dashboard.</p>
-        <a href="http://localhost:5173/interviewer-dashboard" style="color: #4f46e5;">Go to Dashboard</a>
+        <a href="/interviewer-dashboard" style="color: #4f46e5;">Go to Dashboard</a>
       </div>
     `);
   } catch (err) {

@@ -50,7 +50,8 @@ export const sendPendingEmail = async (details) => {
  */
 export const sendConfirmationEmail = async (details) => {
   const { name, email, slot, meetingId, meetingPassword } = details;
-  const meetingLink = `http://localhost:5173/human-mock?name=${encodeURIComponent(name)}&mid=${meetingId}`;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const meetingLink = `${frontendUrl}/human-mock?name=${encodeURIComponent(name)}&mid=${meetingId}`;
 
   const mailOptions = {
     from: `"Samvaad AI" <${process.env.EMAIL_USER}>`,
@@ -88,9 +89,11 @@ export const sendConfirmationEmail = async (details) => {
  */
 export const sendInterviewerAlertEmail = async (interviewerEmail, details) => {
   const { name, email, role, topic, slot, bookingId } = details;
-  const confirmLink = `http://localhost:5000/api/interview/public/confirm-booking/${bookingId}`;
-  const rejectLink = `http://localhost:5000/api/interview/public/reject-booking/${bookingId}`;
-  const dashboardLink = `http://localhost:5173/interviewer-dashboard`;
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const confirmLink = `${backendUrl}/api/interview/public/confirm-booking/${bookingId}`;
+  const rejectLink = `${backendUrl}/api/interview/public/reject-booking/${bookingId}`;
+  const dashboardLink = `${frontendUrl}/interviewer-dashboard`;
 
   const mailOptions = {
     from: `"Samvaad AI - Action Required" <${process.env.EMAIL_USER}>`,
@@ -160,7 +163,8 @@ export const sendApprovalEmail = async (email, name) => {
 
 export const sendGroupInvitationEmail = async (details) => {
   const { hostName, email, topic, meetingId, meetingPassword } = details;
-  const meetingLink = `http://localhost:5173/group-discussion?mid=${meetingId}`;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const meetingLink = `${frontendUrl}/group-discussion?mid=${meetingId}`;
 
   const mailOptions = {
     from: `"Samvaad Group Discussion" <${process.env.EMAIL_USER}>`,
