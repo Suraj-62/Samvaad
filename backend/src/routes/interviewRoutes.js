@@ -12,6 +12,7 @@ import {
   deleteAvailability,
   confirmBooking,
   rejectBooking,
+  cancelBooking,
   confirmBookingPublic,
   rejectBookingPublic,
   createInstantMeeting,
@@ -35,6 +36,7 @@ router.get('/available-slots', getPublicAvailableSlots);
 router.delete('/availability/:id', protect, deleteAvailability);
 router.put('/confirm-booking/:id', protect, confirmBooking);
 router.put('/reject-booking/:id', protect, rejectBooking);
+router.put('/cancel-booking/:id', protect, cancelBooking);
 router.get('/public/confirm-booking/:id', confirmBookingPublic);
 router.get('/public/reject-booking/:id', rejectBookingPublic);
 router.post('/book-human', bookHumanInterview);

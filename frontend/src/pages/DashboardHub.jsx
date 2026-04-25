@@ -6,6 +6,8 @@ export default function DashboardHub() {
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState(JSON.parse(localStorage.getItem('userInfo') || '{}'));
   const [activeTab, setActiveTab] = useState('overview');
+  const [humanBookings, setHumanBookings] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   
@@ -104,7 +106,22 @@ export default function DashboardHub() {
         setLoadingStats(false);
       }
     };
+    const fetchBookingsData = async () => {
+      try {
+        const { fetchBookings } = await import('../services/api');
+        const data = await fetchBookings(userInfo.email);
+        if (data.success) {
+          setHumanBookings(data.bookings.filter(b => b.status === 'pending' || b.status === 'confirmed'));
+        }
+      } catch (err) {
+        console.error("Failed to fetch bookings", err);
+      } finally {
+        setLoadingBookings(false);
+      }
+    };
+
     fetchStats();
+    fetchBookingsData();
     
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -162,6 +179,23 @@ export default function DashboardHub() {
       setMessage('Error: ' + err.message);
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleCancelBooking = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this interview?")) return;
+    
+    try {
+      const { cancelBooking } = await import('../services/api');
+      const res = await cancelBooking(userInfo.token, id);
+      if (res.success) {
+        setHumanBookings(prev => prev.filter(b => b._id !== id));
+        setSuccessMsg('Interview cancelled successfully. The slot is now free.');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      }
+    } catch (err) {
+      console.error("Cancel failed", err);
+      alert("Failed to cancel interview");
     }
   };
 
@@ -432,6 +466,62 @@ export default function DashboardHub() {
                   <button onClick={() => setActiveTab('profile')} className="btn-outline" style={{ width: '100%', fontSize: '0.85rem' }}>
                     {userInfo.hasResume ? 'Update Resume' : 'Upload Resume Now'}
                   </button>
+                </div>
+              </div>
+
+              {/* UPCOMING MEETINGS (NEW SECTION) */}
+              <div className="glass-panel" style={{ padding: '2.5rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                   <h3 style={{ fontSize: '1.5rem', margin: 0 }}>Upcoming Interviews</h3>
+                   <div style={{ padding: '4px 12px', background: 'rgba(139, 92, 246, 0.1)', color: 'var(--purple-glow)', borderRadius: '100px', fontSize: '0.75rem', fontWeight: '800' }}>
+                     {humanBookings.length} ACTIVE
+                   </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {loadingBookings ? (
+                    <p style={{ color: 'var(--text-secondary)' }}>Loading meetings...</p>
+                  ) : humanBookings.length > 0 ? (
+                    humanBookings.map((booking) => (
+                      <div key={booking._id} className="glass-panel" style={{ padding: '1.2rem', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                         <div>
+                            <div style={{ color: '#fff', fontWeight: '700', marginBottom: '4px' }}>{booking.domain} Interview</div>
+                            <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{booking.slot}</div>
+                            <div style={{ marginTop: '8px' }}>
+                               <span style={{ 
+                                 padding: '3px 10px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: '800', 
+                                 background: booking.status === 'confirmed' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                                 color: booking.status === 'confirmed' ? '#10b981' : '#f59e0b',
+                                 textTransform: 'uppercase'
+                               }}>
+                                 {booking.status}
+                               </span>
+                            </div>
+                         </div>
+                         <div style={{ display: 'flex', gap: '10px' }}>
+                            <button 
+                              onClick={() => navigate('/human-mock', { state: { config: { mode: 'human', role: 'candidate' }, meeting: booking } })}
+                              className="btn-outline" 
+                              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', borderColor: '#10b981', color: '#10b981' }}
+                            >
+                              Join Room
+                            </button>
+                            <button 
+                              onClick={() => handleCancelBooking(booking._id)}
+                              className="btn-outline" 
+                              style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', borderColor: '#ef4444', color: '#ef4444' }}
+                            >
+                              Cancel
+                            </button>
+                         </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(255,255,255,0.01)', borderRadius: '16px' }}>
+                       <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>No upcoming human interviews.</p>
+                       <button onClick={() => navigate('/book-human')} style={{ background: 'none', border: 'none', color: 'var(--accent-color)', cursor: 'pointer', fontWeight: '700', marginTop: '10px' }}>Book One Now →</button>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -44,6 +44,12 @@ export const rejectBooking = async (token, id) => {
   });
   return response.data;
 };
+export const cancelBooking = async (token, id) => {
+  const response = await axios.put(`${API_BASE_URL}/cancel-booking/${id}`, {}, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  return response.data;
+};
 
 // Availability APIs
 export const addAvailability = async (token, data) => {

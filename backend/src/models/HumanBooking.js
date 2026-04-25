@@ -34,7 +34,7 @@ const humanBookingSchema = mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['pending', 'confirmed', 'rejected', 'completed'],
+      enum: ['pending', 'confirmed', 'rejected', 'completed', 'cancelled'],
       default: 'pending'
     }
   },

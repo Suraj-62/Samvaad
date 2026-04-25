@@ -43,8 +43,8 @@ export const bookHumanInterview = async (req, res) => {
     
     const availability = await Availability.findOne({ 
       date: selectedDate, 
-      startTime,
-      endTime,
+      startTime: { $lte: startTime },
+      endTime: { $gte: endTime },
       isBooked: false 
     }).populate('interviewer');
 
@@ -59,9 +59,39 @@ export const bookHumanInterview = async (req, res) => {
     details.meetingId = Math.floor(100000000 + Math.random() * 900000000).toString().replace(/(\d{3})(\d{3})(\d{3})/, '$1-$2-$3');
     details.meetingPassword = Math.random().toString(36).slice(-6).toUpperCase();
 
-    // Mark slot as booked (locked for this student)
+    // --- SLOT SPLITTING LOGIC ---
+    // If the chosen time is a subset of the availability, split it
+    const originalStart = availability.startTime;
+    const originalEnd = availability.endTime;
+
+    // 1. Create pre-slot if needed
+    if (originalStart < startTime) {
+      await Availability.create({
+        interviewer: interviewer._id,
+        date: selectedDate,
+        startTime: originalStart,
+        endTime: startTime,
+        isBooked: false
+      });
+    }
+
+    // 2. Create post-slot if needed
+    if (originalEnd > endTime) {
+      await Availability.create({
+        interviewer: interviewer._id,
+        date: selectedDate,
+        startTime: endTime,
+        endTime: originalEnd,
+        isBooked: false
+      });
+    }
+
+    // 3. Update the current record to match EXACTLY the booked time and mark as booked
+    availability.startTime = startTime;
+    availability.endTime = endTime;
     availability.isBooked = true;
     await availability.save();
+    // ----------------------------
 
     // Send Pending email to student
     await sendPendingEmail(details);
@@ -120,6 +150,44 @@ export const confirmBooking = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, error: 'Failed to confirm' });
+  }
+};
+
+export const cancelBooking = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const booking = await HumanBooking.findById(id);
+
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+
+    // Only the student who booked or the interviewer can cancel
+    if (req.user.role === 'student' && booking.email !== req.user.email) {
+       return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+
+    if (booking.status === 'completed' || booking.status === 'cancelled') {
+       return res.status(400).json({ success: false, message: 'Cannot cancel a completed or already cancelled booking' });
+    }
+
+    // Free up the availability slot
+    const [datePart, timePart] = booking.slot.split(' at ');
+    const [startStr, endStr] = timePart.split(' - ');
+    const startTime = parseAMPM(startStr);
+    const endTime = parseAMPM(endStr);
+
+    // Find the slot and free it
+    await Availability.findOneAndUpdate(
+      { interviewer: booking.interviewer, date: { $regex: datePart }, startTime, endTime }, 
+      { isBooked: false }
+    );
+
+    booking.status = 'cancelled';
+    await booking.save();
+
+    res.json({ success: true, message: 'Booking cancelled successfully' });
+  } catch (err) {
+    console.error("Error cancelling booking:", err);
+    res.status(500).json({ success: false, error: 'Failed to cancel booking' });
   }
 };
 
@@ -320,11 +388,27 @@ export const getPublicAvailableSlots = async (req, res) => {
     // Get all unbooked slots
     const slots = await Availability.find({ isBooked: false }).sort({ date: 1, startTime: 1 });
     
-    // Group by date for easier frontend rendering
+    // Group by date and split large slots into 1-hour chunks
     const grouped = slots.reduce((acc, slot) => {
       if (!acc[slot.date]) acc[slot.date] = [];
-      const range = `${formatAMPM(slot.startTime)} - ${formatAMPM(slot.endTime)}`;
-      acc[slot.date].push(range);
+      
+      const start = new Date(`2000-01-01T${slot.startTime}`);
+      const end = new Date(`2000-01-01T${slot.endTime}`);
+      
+      let current = new Date(start);
+      while (current < end) {
+        let next = new Date(current.getTime() + 60 * 60 * 1000); // Add 1 hour
+        if (next > end) next = end;
+        
+        const currentStr = current.toTimeString().slice(0, 5);
+        const nextStr = next.toTimeString().slice(0, 5);
+        
+        const range = `${formatAMPM(currentStr)} - ${formatAMPM(nextStr)}`;
+        acc[slot.date].push(range);
+        
+        current = next;
+      }
+      
       return acc;
     }, {});
 
