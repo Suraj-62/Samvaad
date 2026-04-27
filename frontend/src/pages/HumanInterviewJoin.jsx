@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { verifyMeeting } from '../services/api';
 
 export default function HumanInterviewJoin() {
+  const navigate = useNavigate();
   const location = useLocation();
   const [meetingId, setMeetingId] = useState('');
   const [password, setPassword] = useState('');

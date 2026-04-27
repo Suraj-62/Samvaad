@@ -241,7 +241,11 @@ export const verifyMeeting = async (req, res) => {
       return res.status(400).json({ success: false, error: "Meeting ID and Password are required" });
     }
 
-    const meeting = await HumanBooking.findOne({ meetingId, meetingPassword });
+    let meeting = await HumanBooking.findOne({ meetingId, meetingPassword });
+    if (!meeting) {
+      meeting = await GroupDiscussion.findOne({ meetingId, meetingPassword });
+    }
+
     if (!meeting) {
       return res.status(404).json({ success: false, error: "Invalid Meeting ID or Password" });
     }
