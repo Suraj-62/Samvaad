@@ -314,6 +314,9 @@ export const getUserStats = async (req, res) => {
       gdCount,
       history
     });
+  } catch (error) {
+    console.error("Error getting user stats:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch user stats" });
   }
 };
 
