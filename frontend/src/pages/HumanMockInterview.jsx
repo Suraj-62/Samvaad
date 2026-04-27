@@ -125,32 +125,36 @@ export default function HumanMockInterview() {
   if (!config && !meeting) return null;
 
   return (
-    <div className="meeting-page" style={{ height: '100vh', width: '100vw', background: 'var(--bg-primary)', margin: '-2rem', display: 'flex', flexDirection: 'column', color: '#fff', overflow: 'hidden', fontFamily: "'Outfit', sans-serif" }}>
+    <div className="meeting-page" style={{ height: '100vh', width: '100vw', background: 'var(--bg-primary)', display: 'flex', flexDirection: 'column', color: '#fff', overflow: 'hidden', fontFamily: "'Outfit', sans-serif" }}>
       
       {/* HUD Header */}
-      <div className="meeting-header" style={{ padding: '1rem 2.5rem', background: 'rgba(11,11,11,0.9)', backdropFilter: 'blur(10px)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-          <div className="logo-box" style={{ width: '40px', height: '40px', background: 'var(--accent-color)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M2 10v3" /><path d="M6 6v11" /><path d="M10 3v18" /><path d="M14 8v7" /><path d="M18 5v13" /><path d="M22 10v3" /></svg>
+      <div className="meeting-header" style={{ padding: '0.75rem 2rem', background: 'rgba(11,11,11,0.95)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1000, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', minWidth: 0 }}>
+          <div className="logo-box" style={{ width: '38px', height: '38px', background: 'var(--accent-color)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M2 10v3" /><path d="M6 6v11" /><path d="M10 3v18" /><path d="M14 8v7" /><path d="M18 5v13" /><path d="M22 10v3" /></svg>
           </div>
-          <div>
-            <div className="header-title" style={{ fontWeight: '800', fontSize: '1.3rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              Live Interview 
-              <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 10px #ef4444' }}></div>
+          <div style={{ minWidth: 0 }}>
+            <div className="header-title" style={{ fontWeight: '800', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              Live Session
+              <div style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', boxShadow: '0 0 10px #ef4444', flexShrink: 0 }}></div>
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '500' }}>ID: {roomId} • {formatTime(timer)}</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '500', display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <span style={{ color: 'var(--accent-color)' }}>ID: {roomId}</span> 
+              <span>•</span>
+              <span>{formatTime(timer)}</span>
+            </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-           <div className="status-badge" style={{ color: remoteStream ? '#10b981' : '#f59e0b', fontSize: '0.9rem', fontWeight: '700', background: 'rgba(255,255,255,0.03)', padding: '0.5rem 1rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)' }}>
-             {remoteStream ? 'CONNECTED' : 'WAITING...'}
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexShrink: 0 }}>
+           <div className="status-badge" style={{ color: remoteStream ? '#10b981' : '#f59e0b', fontSize: '0.8rem', fontWeight: '700', background: 'rgba(255,255,255,0.03)', padding: '0.4rem 0.8rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)', letterSpacing: '0.5px' }}>
+             {remoteStream ? 'CONNECTED' : 'WAITING'}
            </div>
-           <button onClick={handleEnd} className="btn-primary end-btn" style={{ background: '#ef4444', border: 'none', padding: '0.8rem 1.5rem' }}>End</button>
+           <button onClick={handleEnd} className="btn-primary end-btn" style={{ background: '#ef4444', border: 'none', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: '700' }}>End Session</button>
         </div>
       </div>
 
-      <div className="meeting-body" style={{ flex: 1, display: 'flex', padding: '2rem', gap: '2rem', position: 'relative' }}>
+      <div className="meeting-body" style={{ flex: 1, display: 'flex', padding: '1.5rem 2rem', gap: '1.5rem', position: 'relative', minHeight: 0 }}>
         
         {/* Background Decorative */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', background: 'rgba(245, 158, 11, 0.03)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0 }}></div>
@@ -167,19 +171,19 @@ export default function HumanMockInterview() {
              </div>
            )}
 
-           <div className="name-tag" style={{ position: 'absolute', bottom: '2rem', left: '2rem', background: 'rgba(11, 11, 11, 0.8)', padding: '0.8rem 1.5rem', borderRadius: '16px', backdropFilter: 'blur(12px)', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: remoteStream ? '#10b981' : '#f59e0b' }}></div>
-              <span style={{ fontWeight: '700' }}>{role === 'interviewer' ? 'Candidate' : 'Interviewer'}</span>
+           <div className="name-tag" style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', background: 'rgba(11, 11, 11, 0.75)', padding: '0.6rem 1.2rem', borderRadius: '14px', backdropFilter: 'blur(16px)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 10px 25px rgba(0,0,0,0.3)', zIndex: 10 }}>
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: remoteStream ? '#10b981' : '#f59e0b', boxShadow: remoteStream ? '0 0 10px #10b981' : 'none' }}></div>
+              <span style={{ fontWeight: '700', fontSize: '0.85rem', letterSpacing: '0.3px', textTransform: 'uppercase' }}>{role === 'interviewer' ? 'Candidate' : 'Interviewer'}</span>
            </div>
         </div>
 
         {/* Side Panel: Local Video & Controls */}
-        <div className="controls-panel" style={{ flex: 0.6, display: 'flex', flexDirection: 'column', gap: '2rem', zIndex: 1 }}>
+        <div className="controls-panel" style={{ flex: 0.5, display: 'flex', flexDirection: 'column', gap: '1.5rem', zIndex: 1, minWidth: '300px' }}>
            
            {/* Local Preview */}
-           <div className="local-video-container" style={{ flex: 1, position: 'relative', background: '#000', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+           <div className="local-video-container" style={{ flex: 1, position: 'relative', background: '#000', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
               <video ref={localVideoRef} autoPlay playsInline muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
-              <div style={{ position: 'absolute', bottom: '1.2rem', left: '1.2rem', background: 'rgba(11, 11, 11, 0.7)', padding: '0.5rem 1rem', borderRadius: '12px', backdropFilter: 'blur(8px)', fontSize: '0.8rem', fontWeight: '700' }}>
+              <div style={{ position: 'absolute', bottom: '1rem', left: '1rem', background: 'rgba(11, 11, 11, 0.7)', padding: '0.4rem 1rem', borderRadius: '10px', backdropFilter: 'blur(10px)', fontSize: '0.75rem', fontWeight: '800', border: '1px solid rgba(255,255,255,0.05)', color: 'var(--accent-color)', textTransform: 'uppercase' }}>
                  You ({role})
               </div>
            </div>
