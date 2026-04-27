@@ -164,7 +164,7 @@ export const sendApprovalEmail = async (email, name) => {
 export const sendGroupInvitationEmail = async (details) => {
   const { hostName, email, topic, meetingId, meetingPassword } = details;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const meetingLink = `${frontendUrl}/group-discussion?mid=${meetingId}`;
+  const meetingLink = `${frontendUrl}/human-join?mid=${meetingId}`;
 
   const mailOptions = {
     from: `"Samvaad Group Discussion" <${process.env.EMAIL_USER}>`,

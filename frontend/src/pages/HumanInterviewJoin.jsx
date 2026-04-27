@@ -1,14 +1,20 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { verifyMeeting } from '../services/api';
 
 export default function HumanInterviewJoin() {
-  const navigate = useNavigate();
+  const location = useLocation();
   const [meetingId, setMeetingId] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('candidate');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const mid = params.get('mid');
+    if (mid) setMeetingId(mid);
+  }, [location]);
 
   const handleJoin = async (e) => {
     e.preventDefault();

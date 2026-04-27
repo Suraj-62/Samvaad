@@ -382,6 +382,14 @@ export default function DashboardHub() {
                     </div>
                     <p style={{ margin: 0, fontSize: '0.8rem', color: '#94a3b8' }}>Invite up to 5 members to join your private discussion room.</p>
                   </div>
+
+                  <button 
+                    onClick={() => navigate('/human-join')} 
+                    className="btn-outline"
+                    style={{ width: 'fit-content', padding: '0.8rem 2rem', fontSize: '0.95rem', borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
+                  >
+                    Join Existing Discussion
+                  </button>
                </div>
 
                <form onSubmit={handleCreateGroup} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', background: 'rgba(255,255,255,0.02)', padding: '2rem', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>

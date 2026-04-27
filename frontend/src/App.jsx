@@ -26,7 +26,7 @@ function App() {
         <Route path="/human-join" element={<HumanInterviewJoin />} />
         <Route path="/interviewer-dashboard" element={<InterviewerDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/group-discussion" element={<HumanMockInterview />} />
+        <Route path="/group-discussion" element={<HumanInterviewJoin />} />
       </Routes>
     </Router>
   );
