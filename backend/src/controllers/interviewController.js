@@ -1,4 +1,4 @@
-import { sendPendingEmail, sendConfirmationEmail, sendInterviewerAlertEmail, sendGroupInvitationEmail } from '../services/emailService.js';
+import { sendPendingEmail, sendConfirmationEmail, sendInterviewerAlertEmail, sendGroupInvitationEmail, sendGroupHostEmail } from '../services/emailService.js';
 import InterviewReport from '../models/InterviewReport.js';
 import HumanBooking from '../models/HumanBooking.js';
 import GroupDiscussion from '../models/GroupDiscussion.js';
@@ -612,6 +612,19 @@ export const createGroupDiscussion = async (req, res) => {
       } catch (err) {
         console.error(`Failed to send group invite to ${email}:`, err);
       }
+    }
+
+    // Send email to the host (sender)
+    try {
+      await sendGroupHostEmail({
+        hostName: req.user.name,
+        email: req.user.email,
+        topic: group.topic,
+        meetingId,
+        meetingPassword
+      });
+    } catch (err) {
+      console.error(`Failed to send group invite to host ${req.user.email}:`, err);
     }
 
     res.json({ success: true, group });

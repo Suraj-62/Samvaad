@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { completeMeeting } from '../services/api';
 

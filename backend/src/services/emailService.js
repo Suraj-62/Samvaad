@@ -195,3 +195,37 @@ export const sendGroupInvitationEmail = async (details) => {
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) await transporter.sendMail(mailOptions);
   } catch (err) { console.error(err); }
 };
+
+export const sendGroupHostEmail = async (details) => {
+  const { hostName, email, topic, meetingId, meetingPassword } = details;
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+  const meetingLink = `${frontendUrl}/human-join?mid=${meetingId}`;
+
+  const mailOptions = {
+    from: `"Samvaad Group Discussion" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: `Your Group Discussion Details: ${topic}`,
+    html: `
+      <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+        <h2 style="color: #8b5cf6;">Group Discussion Created Successfully</h2>
+        <p>Hello <strong>${hostName}</strong>,</p>
+        <p>You have successfully created a Group Discussion session on Samvaad. Your invitations have been sent.</p>
+        
+        <div style="background: #f5f3ff; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd6fe;">
+          <p style="margin: 0;"><strong>Topic:</strong> ${topic}</p>
+          <p style="margin: 0;"><strong>Meeting ID:</strong> <span style="font-family: monospace;">${meetingId}</span></p>
+          <p style="margin: 0;"><strong>Password:</strong> <span style="font-family: monospace;">${meetingPassword}</span></p>
+        </div>
+
+        <p>You can join the discussion using the button below:</p>
+        <a href="${meetingLink}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">Join Your Discussion</a>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 0.8rem; color: #999;">Samvaad | Collaborative Interview Prep</p>
+      </div>
+    `
+  };
+  try {
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) await transporter.sendMail(mailOptions);
+  } catch (err) { console.error(err); }
+};
