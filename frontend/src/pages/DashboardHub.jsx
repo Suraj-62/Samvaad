@@ -343,9 +343,10 @@ export default function DashboardHub() {
           <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
             
             {/* TIER 1: STATS */}
-            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
-              <StatBox title="Sessions" value={stats.totalSessions} icon="play" color="var(--accent-color)" />
-              <StatBox title="Avg Score" value={`${stats.avgScore}%`} icon="award" color="#10b981" />
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
+              <StatBox title="AI Sessions" value={stats.totalSessions} icon="play" color="var(--accent-color)" />
+              <StatBox title="Interviews" value={stats.interviewCount || 0} icon="play" color="#3b82f6" />
+              <StatBox title="GD Rounds" value={stats.gdCount || 0} icon="play" color="#10b981" />
               <StatBox title="Accuracy" value={`${stats.accuracy}%`} icon="zap" color="#f59e0b" />
             </div>
 

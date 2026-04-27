@@ -16,7 +16,8 @@ import {
   confirmBookingPublic,
   rejectBookingPublic,
   createInstantMeeting,
-  createGroupDiscussion
+  createGroupDiscussion,
+  getAdminStats
 } from '../controllers/interviewController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import multer from 'multer';
@@ -30,6 +31,7 @@ const upload = multer({
 const router = express.Router();
 
 router.get('/stats', protect, getUserStats);
+router.get('/admin-stats', protect, getAdminStats);
 router.post('/availability', protect, addAvailability);
 router.get('/availability', protect, getInterviewerAvailability);
 router.get('/available-slots', getPublicAvailableSlots);

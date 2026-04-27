@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [userInfo, setUserInfo] = useState(JSON.parse(localStorage.getItem('userInfo') || '{}'));
+  const [platformStats, setPlatformStats] = useState({ totalInterviews: 0, totalGDs: 0 });
 
   // Profile Form State
   const [editName, setEditName] = useState(userInfo.name || '');
@@ -27,6 +28,7 @@ export default function AdminDashboard() {
       return;
     }
     fetchAllUsers();
+    fetchPlatformStats();
 
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -50,6 +52,20 @@ export default function AdminDashboard() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPlatformStats = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/interview/admin-stats`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPlatformStats(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch admin stats", err);
     }
   };
 
@@ -280,11 +296,10 @@ export default function AdminDashboard() {
         <div className="animate-fade-in">
           {activeTab === 'overview' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem' }}>
-                <StatCard title="Total Users" value={users.length} icon="users" color="#3b82f6" trend="+15%" />
-                <StatCard title="Students" value={students.length} icon="user" color="#10b981" trend="+8%" />
-                <StatCard title="Interviewers" value={approvedInterviewers.length} icon="briefcase" color="#f59e0b" trend="+24%" />
-                <StatCard title="Pending" value={pendingInterviewers.length} icon="clock" color="#ef4444" trend="Action" />
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem' }}>
+                <StatCard title="Total Users" value={users.length} icon="users" color="#3b82f6" trend="TOTAL" />
+                <StatCard title="Total Interviews" value={platformStats.totalInterviews} icon="briefcase" color="#10b981" trend="COMPLETED" />
+                <StatCard title="Total GD Rounds" value={platformStats.totalGDs} icon="users" color="#f59e0b" trend="COMPLETED" />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2.5rem' }}>
@@ -494,7 +509,11 @@ const Table = ({ data, isInterviewer = false, isPending = false, onBlock, onDele
       <thead>
         <tr style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
           <th style={{ padding: '1rem', textAlign: 'left' }}>User</th>
-          {isInterviewer && <th style={{ padding: '1rem', textAlign: 'left' }}>Exp / Role</th>}
+          {isInterviewer ? (
+            <th style={{ padding: '1rem', textAlign: 'left' }}>Sessions Conducted</th>
+          ) : (
+            <th style={{ padding: '1rem', textAlign: 'left' }}>Int / GD Rounds</th>
+          )}
           <th style={{ padding: '1rem', textAlign: 'left' }}>Resume</th>
           {!isPending && <th style={{ padding: '1rem', textAlign: 'left' }}>Status</th>}
           <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
@@ -512,12 +531,22 @@ const Table = ({ data, isInterviewer = false, isPending = false, onBlock, onDele
                 </div>
               </div>
             </td>
-            {isInterviewer && (
-              <td style={{ padding: '1rem' }}>
-                <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '600' }}>{user.experience} Years</div>
-                <div style={{ color: 'var(--accent-color)', fontSize: '0.7rem', fontWeight: '700' }}>{user.jobRole}</div>
-              </td>
-            )}
+            <td style={{ padding: '1rem' }}>
+              {isInterviewer ? (
+                <div style={{ color: '#fff', fontSize: '0.85rem', fontWeight: '800' }}>{user.interviewsConducted || 0} Sessions</div>
+              ) : (
+                <div style={{ display: 'flex', gap: '15px' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ color: '#3b82f6', fontSize: '0.9rem', fontWeight: '800' }}>{user.interviewCount || 0}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>INTERVIEWS</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ color: '#f59e0b', fontSize: '0.9rem', fontWeight: '800' }}>{user.gdCount || 0}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>GD ROUNDS</div>
+                  </div>
+                </div>
+              )}
+            </td>
             <td style={{ padding: '1rem' }}>
               {user.resumePath ? (
                 <a 

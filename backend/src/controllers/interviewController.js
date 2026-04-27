@@ -288,26 +288,56 @@ export const getUserStats = async (req, res) => {
 
     const totalSessions = reports.length;
     const allScores = reports.flatMap(r => r.scoresList);
-    const avgScore = Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10);
+    const avgScore = allScores.length > 0 ? Math.round((allScores.reduce((a, b) => a + b, 0) / allScores.length) * 10) : 0;
     
     // Recent history (last 5)
     const history = reports.slice(0, 5).map(r => ({
       _id: r._id,
-      role: r.candidateName, // Using candidateName as a proxy for the role if not stored separately
+      role: r.candidateName,
       date: new Date(r.createdAt).toLocaleDateString(),
       score: `${Math.round((r.scoresList.reduce((a, b) => a + b, 0) / r.scoresList.length) * 10)}/100`,
       status: "Completed"
     }));
 
+    // New detailed counts
+    const interviewCount = await HumanBooking.countDocuments({ email: req.user.email, status: 'completed' });
+    const gdCount = await GroupDiscussion.countDocuments({ 
+      $or: [{ host: req.user._id }, { 'participants.email': req.user.email }],
+      status: 'completed'
+    });
+
     res.json({
       totalSessions,
       avgScore,
-      accuracy: Math.min(100, avgScore + 5), // Mocking accuracy for now
+      accuracy: Math.min(100, avgScore + 5),
+      interviewCount,
+      gdCount,
       history
     });
+  }
+};
+
+export const getAdminStats = async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const totalInterviews = await HumanBooking.countDocuments({ status: 'completed' });
+    const totalGDs = await GroupDiscussion.countDocuments({ status: 'completed' });
+    const totalUsers = await User.countDocuments({ role: 'student' });
+    const totalInterviewers = await User.countDocuments({ role: 'interviewer', isApproved: true });
+
+    res.json({
+      success: true,
+      totalInterviews,
+      totalGDs,
+      totalUsers,
+      totalInterviewers
+    });
   } catch (error) {
-    console.error("Error getting user stats:", error);
-    res.status(500).json({ success: false, error: "Failed to fetch user stats" });
+    console.error("Error getting admin stats:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch admin stats" });
   }
 };
 

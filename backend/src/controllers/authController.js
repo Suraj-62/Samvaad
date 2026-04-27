@@ -1,4 +1,6 @@
 import User from '../models/User.js';
+import HumanBooking from '../models/HumanBooking.js';
+import GroupDiscussion from '../models/GroupDiscussion.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { sendRegistrationEmail, sendApprovalEmail } from '../services/emailService.js';
@@ -235,8 +237,20 @@ export const approveInterviewer = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select('-password').sort({ createdAt: -1 });
-    res.json(users);
+    const users = await User.find({}).select('-password').sort({ createdAt: -1 }).lean();
+    
+    const usersWithCounts = await Promise.all(users.map(async (user) => {
+      const interviewCount = await HumanBooking.countDocuments({ email: user.email, status: 'completed' });
+      const gdCount = await GroupDiscussion.countDocuments({ 
+        $or: [{ host: user._id }, { 'participants.email': user.email }],
+        status: 'completed'
+      });
+      const interviewsConducted = await HumanBooking.countDocuments({ interviewer: user._id, status: 'completed' });
+      
+      return { ...user, interviewCount, gdCount, interviewsConducted };
+    }));
+
+    res.json(usersWithCounts);
   } catch (error) {
     console.error("Error getting all users:", error);
     res.status(500).json({ message: 'Server error fetching users' });
