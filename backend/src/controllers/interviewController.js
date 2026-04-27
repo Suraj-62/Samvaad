@@ -250,6 +250,10 @@ export const verifyMeeting = async (req, res) => {
       return res.status(404).json({ success: false, error: "Invalid Meeting ID or Password" });
     }
 
+    if (meeting.status === 'completed') {
+      return res.status(400).json({ success: false, error: "This meeting has already ended." });
+    }
+
     res.json({ success: true, meeting });
   } catch (error) {
     console.error("Error verifying meeting:", error);
@@ -614,5 +618,26 @@ export const createGroupDiscussion = async (req, res) => {
   } catch (error) {
     console.error("Error creating group discussion:", error);
     res.status(500).json({ success: false, error: "Failed to create group" });
+  }
+};
+
+export const completeMeeting = async (req, res) => {
+  try {
+    const { meetingId } = req.params;
+    
+    // Update either HumanBooking or GroupDiscussion
+    let meeting = await HumanBooking.findOneAndUpdate({ meetingId }, { status: 'completed' });
+    if (!meeting) {
+      meeting = await GroupDiscussion.findOneAndUpdate({ meetingId }, { status: 'completed' });
+    }
+
+    if (!meeting) {
+      return res.status(404).json({ success: false, error: "Meeting not found" });
+    }
+
+    res.json({ success: true, message: "Meeting marked as completed" });
+  } catch (error) {
+    console.error("Error completing meeting:", error);
+    res.status(500).json({ success: false, error: "Failed to complete meeting" });
   }
 };

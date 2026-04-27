@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { completeMeeting } from '../services/api';
 
 export default function HumanMockInterview() {
   const location = useLocation();
@@ -105,7 +105,14 @@ export default function HumanMockInterview() {
     }
   };
 
-  const handleEnd = () => {
+  const handleEnd = async () => {
+     try {
+       if (meeting?.meetingId) {
+         await completeMeeting(meeting.meetingId);
+       }
+     } catch (err) {
+       console.error("Failed to mark meeting as completed:", err);
+     }
      navigate('/dashboard', { state: { message: 'Interview session ended successfully.' } });
   };
 

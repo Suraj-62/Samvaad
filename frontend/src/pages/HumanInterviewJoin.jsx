@@ -36,7 +36,7 @@ export default function HumanInterviewJoin() {
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to verify meeting. Please check your credentials.');
+      setError(err.response?.data?.error || 'Failed to verify meeting. Please check your credentials.');
     } finally {
       setLoading(false);
     }

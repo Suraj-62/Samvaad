@@ -91,3 +91,7 @@ export const createGroupDiscussion = async (token, data) => {
   });
   return response.data;
 };
+export const completeMeeting = async (meetingId) => {
+  const response = await axios.put(`${API_BASE_URL}/complete-meeting/${meetingId}`);
+  return response.data;
+};

@@ -17,7 +17,8 @@ import {
   rejectBookingPublic,
   createInstantMeeting,
   createGroupDiscussion,
-  getAdminStats
+  getAdminStats,
+  completeMeeting
 } from '../controllers/interviewController.js';
 import { protect } from '../middleware/authMiddleware.js';
 import multer from 'multer';
@@ -47,6 +48,7 @@ router.get('/all-bookings', protect, getAllBookings);
 router.post('/verify-meeting', verifyMeeting);
 router.post('/create-instant', protect, createInstantMeeting);
 router.post('/create-group', protect, createGroupDiscussion);
+router.put('/complete-meeting/:meetingId', completeMeeting);
 router.post('/parse-resume', protect, upload.single('resume'), parseResume);
 
 export default router;
