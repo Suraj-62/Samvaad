@@ -38,6 +38,7 @@ export default function DashboardHub() {
   const [groupError, setGroupError] = useState('');
   const [groupSuccess, setGroupSuccess] = useState('');
   const [createdGroupData, setCreatedGroupData] = useState(null);
+  const [copying, setCopying] = useState(false);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
@@ -79,6 +80,14 @@ export default function DashboardHub() {
     const newEmails = [...friendEmails];
     newEmails[index] = value;
     setFriendEmails(newEmails);
+  };
+
+  const handleCopyLink = () => {
+    if (!createdGroupData) return;
+    const link = `${window.location.origin}/gd-join?mid=${createdGroupData.mid}&pwd=${createdGroupData.pwd}`;
+    navigator.clipboard.writeText(link);
+    setCopying(true);
+    setTimeout(() => setCopying(false), 2000);
   };
 
   useEffect(() => {
@@ -441,14 +450,34 @@ export default function DashboardHub() {
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div className="success-alert" style={{ margin: 0, fontSize: '0.85rem' }}>{groupSuccess}</div>
                         {createdGroupData && (
-                           <button 
-                             type="button" 
-                             onClick={() => navigate(`/gd-join?mid=${createdGroupData.mid}&pwd=${createdGroupData.pwd}`)}
-                             className="btn-primary"
-                             style={{ background: '#10b981', border: 'none', width: '100%' }}
-                           >
-                              Enter Your Room Now →
-                           </button>
+                           <div style={{ display: 'flex', gap: '10px' }}>
+                              <button 
+                                type="button" 
+                                onClick={() => navigate(`/gd-join?mid=${createdGroupData.mid}&pwd=${createdGroupData.pwd}`)}
+                                className="btn-primary"
+                                style={{ background: '#10b981', border: 'none', flex: 1 }}
+                              >
+                                 Enter Room →
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={handleCopyLink}
+                                className="btn-outline"
+                                style={{ borderColor: 'var(--accent-color)', color: 'var(--accent-color)', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
+                              >
+                                 {copying ? (
+                                    <>
+                                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                       Copied!
+                                    </>
+                                 ) : (
+                                    <>
+                                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                       Copy Link
+                                     </>
+                                 )}
+                              </button>
+                           </div>
                         )}
                      </div>
                   )}

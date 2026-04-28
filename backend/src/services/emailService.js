@@ -72,6 +72,9 @@ export const sendConfirmationEmail = async (details) => {
         <p>You can join the meeting using the button below:</p>
         <a href="${meetingLink}" style="display: inline-block; background: #10b981; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">Join Meeting Now</a>
         
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #10b981; font-size: 0.85rem; font-family: monospace; background: #f9fafb; padding: 10px; border-radius: 4px; border: 1px solid #eee;">${meetingLink}</p>
+        
         <p style="font-size: 0.9rem; color: #666; margin-top: 20px;"><em>Please be ready 5 minutes before the scheduled time.</em></p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
         <p style="font-size: 0.8rem; color: #999;">Samvaad AI | Premium Interview Intelligence</p>
@@ -208,6 +211,9 @@ export const sendGroupInvitationEmail = async (details) => {
         <p>You can join the discussion using the button below:</p>
         <a href="${meetingLink}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">Join Discussion Now</a>
         
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #8b5cf6; font-size: 0.85rem; font-family: monospace; background: #f5f3ff; padding: 10px; border-radius: 4px; border: 1px solid #ddd6fe;">${meetingLink}</p>
+        
         <p style="font-size: 0.9rem; color: #666; margin-top: 20px;"><em>Make sure you have a working microphone and camera.</em></p>
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
         <p style="font-size: 0.8rem; color: #999;">Samvaad | Collaborative Interview Prep</p>
@@ -242,6 +248,9 @@ export const sendGroupHostEmail = async (details) => {
 
         <p>You can join the discussion using the button below:</p>
         <a href="${meetingLink}" style="display: inline-block; background: #8b5cf6; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">Join Your Discussion</a>
+        
+        <p style="margin-top: 20px; font-size: 0.9rem; color: #666;">Your private meeting link:</p>
+        <p style="word-break: break-all; color: #8b5cf6; font-size: 0.85rem; font-family: monospace; background: #f5f3ff; padding: 10px; border-radius: 4px; border: 1px solid #ddd6fe;">${meetingLink}</p>
         
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;" />
         <p style="font-size: 0.8rem; color: #999;">Samvaad | Collaborative Interview Prep</p>
