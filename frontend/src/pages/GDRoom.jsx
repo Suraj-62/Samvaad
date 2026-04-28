@@ -72,40 +72,63 @@ export default function GDRoom() {
           localVideoRef.current.srcObject = stream;
         }
 
-        // Configure STUN/TURN for reliable connections across networks
         const peer = new window.Peer(myId, {
           config: {
             iceServers: [
               { urls: 'stun:stun.l.google.com:19302' },
               { urls: 'stun:stun1.l.google.com:19302' },
+              { urls: 'stun:stun2.l.google.com:19302' },
               { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
-              { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
-              { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
+              { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" }
             ]
           }
         });
 
         peerInstance.current = peer;
 
-        peer.on('open', (id) => {
-          console.log('Connected to signaling server with ID:', id);
+        const handleNewStream = (remoteId, remoteStream, remoteName, remoteRole) => {
+          setPeers(prev => ({
+            ...prev,
+            [remoteId]: { 
+              stream: remoteStream, 
+              name: remoteName || prev[remoteId]?.name || 'Participant', 
+              role: remoteRole || prev[remoteId]?.role || 'Participant' 
+            }
+          }));
+        };
 
-          // Try to connect to all other known possible peers in the room
+        const setupDataConnection = (conn) => {
+          conn.on('open', () => {
+            // Send our identity
+            conn.send({ type: 'identity', name: userName, role: role });
+          });
+          conn.on('data', (data) => {
+            if (data.type === 'identity') {
+              setPeers(prev => ({
+                ...prev,
+                [conn.peer]: { ...prev[conn.peer], name: data.name, role: data.role }
+              }));
+            }
+          });
+        };
+
+        peer.on('open', (id) => {
+          console.log('My Peer ID:', id);
+
+          // Connect to others
           setTimeout(() => {
             possibleIds.forEach(targetId => {
               if (targetId !== myId) {
-                // We pass our name and role in the metadata so they know who we are
-                const call = peer.call(targetId, stream, { 
-                  metadata: { userName, role } 
-                });
-                
+                // 1. Data Connection for metadata
+                const conn = peer.connect(targetId);
+                if (conn) setupDataConnection(conn);
+
+                // 2. Media Call
+                const call = peer.call(targetId, stream, { metadata: { userName, role } });
                 if (call) {
                   callsRef.current[targetId] = call;
                   call.on('stream', (remoteStream) => {
-                    setPeers(prev => ({
-                      ...prev,
-                      [targetId]: { stream: remoteStream, name: call.metadata?.userName || 'Participant', role: call.metadata?.role || 'Participant' }
-                    }));
+                    handleNewStream(targetId, remoteStream, null, null);
                   });
                   call.on('close', () => {
                     setPeers(prev => {
@@ -115,31 +138,42 @@ export default function GDRoom() {
                     });
                   });
                   call.on('error', () => {
-                    // Ignored, peer might not be online yet
+                    setPeers(prev => {
+                      const newPeers = { ...prev };
+                      delete newPeers[targetId];
+                      return newPeers;
+                    });
                   });
                 }
               }
             });
-          }, 2000);
+          }, 1500);
+        });
+
+        peer.on('connection', (conn) => {
+          setupDataConnection(conn);
         });
 
         peer.on('call', (call) => {
-          // Incoming call from someone else
           const callerId = call.peer;
-          const callerName = call.metadata?.userName || 'Participant';
-          const callerRole = call.metadata?.role || 'Participant';
+          const callerName = call.metadata?.userName;
+          const callerRole = call.metadata?.role;
 
           call.answer(stream);
           callsRef.current[callerId] = call;
 
           call.on('stream', (remoteStream) => {
-            setPeers(prev => ({
-              ...prev,
-              [callerId]: { stream: remoteStream, name: callerName, role: callerRole }
-            }));
+            handleNewStream(callerId, remoteStream, callerName, callerRole);
           });
 
           call.on('close', () => {
+            setPeers(prev => {
+              const newPeers = { ...prev };
+              delete newPeers[callerId];
+              return newPeers;
+            });
+          });
+          call.on('error', () => {
             setPeers(prev => {
               const newPeers = { ...prev };
               delete newPeers[callerId];
@@ -150,15 +184,14 @@ export default function GDRoom() {
 
         peer.on('error', (err) => {
           console.warn('Peer error:', err);
-          // If ID is taken, just pick a random one and try again
           if (err.type === 'unavailable-id') {
-             const randomId = `${roomId}-guest-${Math.floor(Math.random() * 1000)}`;
-             initPeer(randomId, possibleIds, role);
+            const retryId = `${roomId}-guest-${Math.floor(Math.random() * 10000)}`;
+            initPeer(retryId, possibleIds, role);
           }
         });
 
       } catch (err) {
-        console.error("Media/Peer access denied:", err);
+        console.error("WebRTC Error:", err);
         alert("Camera/Microphone access is required for Group Discussion.");
       }
     }
