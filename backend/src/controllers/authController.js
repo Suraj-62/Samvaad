@@ -3,7 +3,7 @@ import HumanBooking from '../models/HumanBooking.js';
 import GroupDiscussion from '../models/GroupDiscussion.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { sendRegistrationEmail, sendApprovalEmail } from '../services/emailService.js';
+import { sendRegistrationEmail, sendApprovalEmail, sendWelcomeEmail } from '../services/emailService.js';
 // import { PDFParse } from 'pdf-parse'; // Moved to dynamic import for Vercel compatibility
 import fs from 'fs';
 import { OAuth2Client } from 'google-auth-library';
@@ -61,14 +61,26 @@ export const registerUser = async (req, res) => {
       if (resumeFile.mimetype === 'application/pdf') {
         try {
           console.log('Attempting to parse PDF resume...');
-          const { PDFParse } = await import('pdf-parse');
-          const parser = new PDFParse({ data: resumeFile.buffer });
-          const data = await parser.getText();
-          resumeText = data.text;
-          console.log('Resume parsed successfully, length:', resumeText.length);
+          const pdfModule = await import('pdf-parse');
+          const PDFParse = pdfModule.PDFParse || pdfModule.default || (typeof pdfModule === 'function' ? pdfModule : null);
+          
+          if (PDFParse) {
+             let data;
+             if (typeof PDFParse === 'function' && !PDFParse.prototype?.getText) {
+                // Legacy / functional pdf-parse usage
+                data = await PDFParse(resumeFile.buffer);
+             } else {
+                // New / Class-based usage
+                const parser = new PDFParse({ data: resumeFile.buffer });
+                data = await parser.getText();
+             }
+             resumeText = data.text || '';
+             console.log('Resume parsed successfully, length:', resumeText.length);
+          } else {
+             console.warn('PDFParse module not found or incompatible structure');
+          }
         } catch (err) {
           console.error("Error parsing resume during registration:", err.message);
-          // We still have the base64 resumePath, so registration can continue
         }
       }
     }
@@ -86,6 +98,9 @@ export const registerUser = async (req, res) => {
     });
 
     if (user) {
+      // Send the standard welcome email for all new users
+      await sendWelcomeEmail(email, name);
+
       if (role === 'interviewer') {
         await sendRegistrationEmail(email, name);
       }
@@ -97,7 +112,7 @@ export const registerUser = async (req, res) => {
         role: user.role,
         isApproved: user.isApproved,
         profilePic: user.profilePic,
-        hasResume: !!user.resumeText,
+        hasResume: !!(user.resumePath || user.resumeText),
         resumePath: user.resumePath,
         token: generateToken(user._id),
       });
@@ -173,6 +188,9 @@ export const googleAuth = async (req, res) => {
         role: 'student',
         isApproved: true,
       });
+      
+      // Send welcome email to the new Google Auth user
+      await sendWelcomeEmail(email, name);
     } else {
       if (user.isBlocked) {
         return res.status(403).json({ message: 'Your account has been blocked by the administrator.' });
@@ -190,7 +208,7 @@ export const googleAuth = async (req, res) => {
       role: user.role,
       isApproved: user.isApproved,
       profilePic: user.profilePic || picture,
-      hasResume: !!user.resumeText,
+      hasResume: !!(user.resumePath || user.resumeText),
       resumePath: user.resumePath,
       token: generateToken(user._id),
     });
@@ -282,25 +300,43 @@ export const updateUserProfile = async (req, res) => {
 
     if (user) {
       user.name = req.body.name || user.name;
+      if (req.body.jobRole) user.jobRole = req.body.jobRole;
+      if (req.body.experience) user.experience = req.body.experience;
       
       if (req.files) {
         if (req.files.profilePic) {
           const file = req.files.profilePic[0];
           const base64Data = file.buffer.toString('base64');
           user.profilePic = `data:${file.mimetype};base64,${base64Data}`;
+          console.log(`Profile picture updated for user: ${user.email}`);
         }
         if (req.files.resume) {
           const file = req.files.resume[0];
           const base64Data = file.buffer.toString('base64');
           user.resumePath = `data:${file.mimetype};base64,${base64Data}`;
+          console.log(`Resume file uploaded for user: ${user.email}, size: ${file.size} bytes`);
           
           // Also parse and update resume text
           try {
             console.log('Attempting to parse PDF resume during profile update...');
-            const { PDFParse } = await import('pdf-parse');
-            const parser = new PDFParse({ data: file.buffer });
-            const textResult = await parser.getText();
-            user.resumeText = textResult.text;
+            const pdfModule = await import('pdf-parse');
+            const PDFParse = pdfModule.PDFParse || pdfModule.default || (typeof pdfModule === 'function' ? pdfModule : null);
+            
+            if (PDFParse) {
+              let data;
+              if (typeof PDFParse === 'function' && !PDFParse.prototype?.getText) {
+                // Legacy / functional pdf-parse usage
+                data = await PDFParse(file.buffer);
+              } else {
+                // New / Class-based usage
+                const parser = new PDFParse({ data: file.buffer });
+                data = await parser.getText();
+              }
+              user.resumeText = data.text || '';
+              console.log(`Resume parsed successfully. Length: ${user.resumeText?.length || 0}`);
+            } else {
+              console.warn('PDFParse module not found or incompatible structure during profile update');
+            }
           } catch (err) {
             console.error("Error parsing resume during profile update:", err);
           }
@@ -308,6 +344,7 @@ export const updateUserProfile = async (req, res) => {
       }
 
       const updatedUser = await user.save();
+      console.log(`User profile saved: ${user.email}`);
 
       res.json({
         _id: updatedUser._id,
@@ -315,7 +352,7 @@ export const updateUserProfile = async (req, res) => {
         email: updatedUser.email,
         role: updatedUser.role,
         profilePic: updatedUser.profilePic,
-        hasResume: !!updatedUser.resumeText,
+        hasResume: !!(updatedUser.resumePath || updatedUser.resumeText),
         resumeText: updatedUser.resumeText,
         resumePath: updatedUser.resumePath,
         token: generateToken(updatedUser._id),

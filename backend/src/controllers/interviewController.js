@@ -243,7 +243,7 @@ export const verifyMeeting = async (req, res) => {
 
     let meeting = await HumanBooking.findOne({ meetingId, meetingPassword });
     if (!meeting) {
-      meeting = await GroupDiscussion.findOne({ meetingId, meetingPassword });
+      meeting = await GroupDiscussion.findOne({ meetingId, meetingPassword }).populate('host', 'name email');
     }
 
     if (!meeting) {
@@ -269,8 +269,15 @@ export const getAllBookings = async (req, res) => {
       query = { interviewer: req.user._id };
     }
     
-    const bookings = await HumanBooking.find(query).sort({ createdAt: -1 });
-    res.json({ success: true, bookings });
+    const bookings = await HumanBooking.find(query).sort({ createdAt: -1 }).lean();
+    
+    // Enrich bookings with student resume info if requested by an interviewer
+    const enrichedBookings = await Promise.all(bookings.map(async (booking) => {
+      const student = await User.findOne({ email: booking.email }).select('resumePath');
+      return { ...booking, studentResume: student?.resumePath || null };
+    }));
+
+    res.json({ success: true, bookings: enrichedBookings });
   } catch (error) {
     console.error("Error fetching all bookings:", error);
     res.status(500).json({ success: false, error: "Failed to fetch bookings" });

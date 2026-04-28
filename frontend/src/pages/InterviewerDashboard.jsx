@@ -602,6 +602,20 @@ const StudentTable = ({ data, onJoin, onConfirm, onReject }) => (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--purple-glow)" strokeWidth="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                   {booking.slot}
                </div>
+               {booking.studentResume && (
+                   <div style={{ marginTop: '8px' }}>
+                      <a 
+                        href={booking.studentResume.startsWith('data:') ? booking.studentResume : `${BACKEND_URL}/${booking.studentResume.replace('\\', '/')}`}
+                        download={`${booking.name}_Resume.pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: 'var(--accent-color)', fontSize: '0.75rem', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      >
+                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                         Download Resume
+                      </a>
+                   </div>
+                )}
             </td>
             <td style={{ padding: '1rem', textAlign: 'right' }}>
                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { completeMeeting } from '../services/api';
+import { completeMeeting, BACKEND_URL } from '../services/api';
 
 export default function HumanMockInterview() {
   const location = useLocation();
@@ -151,6 +151,29 @@ export default function HumanMockInterview() {
            <div className="status-badge" style={{ color: remoteStream ? '#10b981' : '#f59e0b', fontSize: '0.8rem', fontWeight: '700', background: 'rgba(255,255,255,0.03)', padding: '0.4rem 0.8rem', borderRadius: '100px', border: '1px solid rgba(255,255,255,0.05)', letterSpacing: '0.5px' }}>
              {remoteStream ? 'CONNECTED' : 'WAITING'}
            </div>
+           {role === 'interviewer' && meeting?.studentResume && (
+              <a 
+                href={meeting.studentResume.startsWith('data:') ? meeting.studentResume : `${BACKEND_URL}/${meeting.studentResume.replace('\\', '/')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.05)', 
+                  color: 'var(--accent-color)', 
+                  padding: '0.6rem 1rem', 
+                  borderRadius: '10px', 
+                  border: '1px solid var(--accent-color)',
+                  textDecoration: 'none',
+                  fontSize: '0.85rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Candidate Resume
+              </a>
+           )}
            <button onClick={handleEnd} className="btn-primary end-btn" style={{ background: '#ef4444', border: 'none', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: '700' }}>End Session</button>
         </div>
       </div>

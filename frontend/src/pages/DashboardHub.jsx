@@ -37,6 +37,7 @@ export default function DashboardHub() {
   const [creatingGroup, setCreatingGroup] = useState(false);
   const [groupError, setGroupError] = useState('');
   const [groupSuccess, setGroupSuccess] = useState('');
+  const [createdGroupData, setCreatedGroupData] = useState(null);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
@@ -57,9 +58,9 @@ export default function DashboardHub() {
       });
       if (res.success) {
         setGroupSuccess('Invitations sent successfully!');
+        setCreatedGroupData({ mid: res.group.meetingId, pwd: res.group.meetingPassword });
         setGroupTopic('');
         setFriendEmails(['']);
-        setTimeout(() => setGroupSuccess(''), 5000);
       }
     } catch (err) {
       setGroupError(err.response?.data?.error || 'Failed to create group discussion');
@@ -385,7 +386,7 @@ export default function DashboardHub() {
                   </div>
 
                   <button 
-                    onClick={() => navigate('/human-join')} 
+                    onClick={() => navigate('/gd-join')} 
                     className="btn-outline"
                     style={{ width: 'fit-content', padding: '0.8rem 2rem', fontSize: '0.95rem', borderColor: 'var(--accent-color)', color: 'var(--accent-color)' }}
                   >
@@ -436,7 +437,21 @@ export default function DashboardHub() {
                   </div>
 
                   {groupError && <div className="error-alert" style={{ margin: 0, fontSize: '0.85rem' }}>{groupError}</div>}
-                  {groupSuccess && <div className="success-alert" style={{ margin: 0, fontSize: '0.85rem' }}>{groupSuccess}</div>}
+                  {groupSuccess && (
+                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div className="success-alert" style={{ margin: 0, fontSize: '0.85rem' }}>{groupSuccess}</div>
+                        {createdGroupData && (
+                           <button 
+                             type="button" 
+                             onClick={() => navigate(`/gd-join?mid=${createdGroupData.mid}&pwd=${createdGroupData.pwd}`)}
+                             className="btn-primary"
+                             style={{ background: '#10b981', border: 'none', width: '100%' }}
+                           >
+                              Enter Your Room Now →
+                           </button>
+                        )}
+                     </div>
+                  )}
 
                   <button 
                     type="submit" 

@@ -133,6 +133,29 @@ export const sendInterviewerAlertEmail = async (interviewerEmail, details) => {
 };
 
 // ... keep existing sendRegistrationEmail and sendApprovalEmail if needed
+export const sendWelcomeEmail = async (email, name) => {
+  const mailOptions = {
+    from: `"Samvaad Team" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: "Welcome to Samvaad!",
+    html: `
+      <div style="font-family: sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+        <h2 style="color: #10b981;">Welcome to Samvaad!</h2>
+        <p>Hello <strong>${name}</strong>,</p>
+        <p>Thank you for registering on Samvaad. We're thrilled to have you onboard!</p>
+        <p>Start exploring the platform to schedule mock interviews, join group discussions, and elevate your interview skills.</p>
+        <p>Best Regards,</p>
+        <p><strong>The Samvaad Team</strong></p>
+      </div>
+    `,
+  };
+  try {
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) await transporter.sendMail(mailOptions);
+  } catch (err) {
+    console.error("Failed to send welcome email:", err);
+  }
+};
+
 export const sendRegistrationEmail = async (email, name) => {
   const mailOptions = {
     from: `"Samvaad Team" <${process.env.EMAIL_USER}>`,
@@ -164,7 +187,7 @@ export const sendApprovalEmail = async (email, name) => {
 export const sendGroupInvitationEmail = async (details) => {
   const { hostName, email, topic, meetingId, meetingPassword } = details;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const meetingLink = `${frontendUrl}/human-join?mid=${meetingId}`;
+  const meetingLink = `${frontendUrl}/gd-join?mid=${meetingId}&pwd=${meetingPassword}`;
 
   const mailOptions = {
     from: `"Samvaad Group Discussion" <${process.env.EMAIL_USER}>`,
@@ -199,7 +222,7 @@ export const sendGroupInvitationEmail = async (details) => {
 export const sendGroupHostEmail = async (details) => {
   const { hostName, email, topic, meetingId, meetingPassword } = details;
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-  const meetingLink = `${frontendUrl}/human-join?mid=${meetingId}`;
+  const meetingLink = `${frontendUrl}/gd-join?mid=${meetingId}&pwd=${meetingPassword}`;
 
   const mailOptions = {
     from: `"Samvaad Group Discussion" <${process.env.EMAIL_USER}>`,

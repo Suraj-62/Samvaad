@@ -11,6 +11,9 @@ import AdminDashboard from './pages/AdminDashboard';
 
 import Configurator from './pages/Configurator';
 
+import GDJoin from './pages/GDJoin';
+import GDRoom from './pages/GDRoom';
+
 function App() {
   return (
     <Router>
@@ -26,7 +29,8 @@ function App() {
         <Route path="/human-join" element={<HumanInterviewJoin />} />
         <Route path="/interviewer-dashboard" element={<InterviewerDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/group-discussion" element={<HumanInterviewJoin />} />
+        <Route path="/gd-join" element={<GDJoin />} />
+        <Route path="/gd-room" element={<GDRoom />} />
       </Routes>
     </Router>
   );
