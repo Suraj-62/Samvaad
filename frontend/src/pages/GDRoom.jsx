@@ -89,20 +89,32 @@ export default function GDRoom() {
         peerInstance.current = peer;
 
         const handleNewStream = (remoteId, remoteStream, remoteName, remoteRole) => {
-          setPeers(prev => ({
-            ...prev,
-            [remoteId]: { 
-              stream: remoteStream, 
-              name: remoteName || prev[remoteId]?.name || 'Participant', 
-              role: remoteRole || prev[remoteId]?.role || 'Participant' 
+          if (!remoteStream) return;
+          setPeers(prev => {
+            // Only update if something actually changed to prevent blinking/re-renders
+            const current = prev[remoteId];
+            if (current && current.stream === remoteStream && current.name === remoteName && current.role === remoteRole) {
+              return prev;
             }
-          }));
+            return {
+              ...prev,
+              [remoteId]: { 
+                stream: remoteStream, 
+                name: remoteName || current?.name || 'Participant', 
+                role: remoteRole || current?.role || 'Participant' 
+              }
+            };
+          });
         };
 
         const setupDataConnection = (conn) => {
           conn.on('open', () => {
-            // Send our identity
             conn.send({ type: 'identity', name: userName, role: role });
+            // If I am the host, I help others discover each other
+            if (role === 'Host') {
+              const otherPeerIds = Object.keys(callsRef.current).filter(id => id !== conn.peer);
+              conn.send({ type: 'peer-list', peers: otherPeerIds });
+            }
           });
           conn.on('data', (data) => {
             if (data.type === 'identity') {
@@ -111,43 +123,57 @@ export default function GDRoom() {
                 [conn.peer]: { ...prev[conn.peer], name: data.name, role: data.role }
               }));
             }
-          });
-        };
-
-        const connectToPeers = () => {
-          possibleIds.forEach(targetId => {
-            if (targetId !== myId && !callsRef.current[targetId]) {
-              // 1. Data Connection for metadata
-              const conn = peer.connect(targetId);
-              if (conn) setupDataConnection(conn);
-
-              // 2. Media Call
-              const call = peer.call(targetId, stream, { metadata: { userName, role } });
-              if (call) {
-                callsRef.current[targetId] = call;
-                call.on('stream', (remoteStream) => {
-                  handleNewStream(targetId, remoteStream, null, null);
-                });
-                call.on('close', () => {
-                  delete callsRef.current[targetId];
-                  setPeers(prev => {
-                    const newPeers = { ...prev };
-                    delete newPeers[targetId];
-                    return newPeers;
-                  });
-                });
-              }
+            if (data.type === 'peer-list' && data.peers) {
+              data.peers.forEach(pid => {
+                if (pid !== myId && !callsRef.current[pid]) {
+                  initiateCall(pid);
+                }
+              });
             }
           });
         };
 
+        const initiateCall = (targetId) => {
+          // To prevent double calling/blinking, only the peer with the smaller ID initiates the call
+          if (myId >= targetId) return; 
+          if (callsRef.current[targetId]) return;
+
+          const conn = peer.connect(targetId);
+          if (conn) setupDataConnection(conn);
+
+          const call = peer.call(targetId, stream, { metadata: { userName, role } });
+          if (call) {
+            callsRef.current[targetId] = call;
+            call.on('stream', (remoteStream) => {
+              handleNewStream(targetId, remoteStream, null, null);
+            });
+            call.on('close', () => cleanupPeer(targetId));
+            call.on('error', () => cleanupPeer(targetId));
+          }
+        };
+
+        const cleanupPeer = (remoteId) => {
+          delete callsRef.current[remoteId];
+          setPeers(prev => {
+            const newPeers = { ...prev };
+            delete newPeers[remoteId];
+            return newPeers;
+          });
+        };
+
         peer.on('open', (id) => {
-          console.log('My Peer ID:', id);
-          connectToPeers();
-          // Periodically try to connect to catch late joiners
-          const connectInterval = setInterval(connectToPeers, 5000);
+          console.log('Peer Opened:', id);
           
-          // Store it somewhere to clear later
+          // Connect to known participants and host
+          possibleIds.forEach(tid => {
+            if (tid !== myId) initiateCall(tid);
+          });
+
+          const connectInterval = setInterval(() => {
+            possibleIds.forEach(tid => {
+              if (tid !== myId && !callsRef.current[tid]) initiateCall(tid);
+            });
+          }, 5000);
           window._connectInterval = connectInterval;
         });
 
@@ -157,30 +183,14 @@ export default function GDRoom() {
 
         peer.on('call', (call) => {
           const callerId = call.peer;
-          const callerName = call.metadata?.userName;
-          const callerRole = call.metadata?.role;
-
           call.answer(stream);
           callsRef.current[callerId] = call;
 
           call.on('stream', (remoteStream) => {
-            handleNewStream(callerId, remoteStream, callerName, callerRole);
+            handleNewStream(callerId, remoteStream, call.metadata?.userName, call.metadata?.role);
           });
-
-          call.on('close', () => {
-            setPeers(prev => {
-              const newPeers = { ...prev };
-              delete newPeers[callerId];
-              return newPeers;
-            });
-          });
-          call.on('error', () => {
-            setPeers(prev => {
-              const newPeers = { ...prev };
-              delete newPeers[callerId];
-              return newPeers;
-            });
-          });
+          call.on('close', () => cleanupPeer(callerId));
+          call.on('error', () => cleanupPeer(callerId));
         });
 
         peer.on('error', (err) => {
