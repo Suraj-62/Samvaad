@@ -78,6 +78,8 @@ export default function GDRoom() {
               { urls: 'stun:stun.l.google.com:19302' },
               { urls: 'stun:stun1.l.google.com:19302' },
               { urls: 'stun:stun2.l.google.com:19302' },
+              { urls: 'stun:stun3.l.google.com:19302' },
+              { urls: 'stun:stun4.l.google.com:19302' },
               { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
               { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" }
             ]
@@ -112,42 +114,41 @@ export default function GDRoom() {
           });
         };
 
+        const connectToPeers = () => {
+          possibleIds.forEach(targetId => {
+            if (targetId !== myId && !callsRef.current[targetId]) {
+              // 1. Data Connection for metadata
+              const conn = peer.connect(targetId);
+              if (conn) setupDataConnection(conn);
+
+              // 2. Media Call
+              const call = peer.call(targetId, stream, { metadata: { userName, role } });
+              if (call) {
+                callsRef.current[targetId] = call;
+                call.on('stream', (remoteStream) => {
+                  handleNewStream(targetId, remoteStream, null, null);
+                });
+                call.on('close', () => {
+                  delete callsRef.current[targetId];
+                  setPeers(prev => {
+                    const newPeers = { ...prev };
+                    delete newPeers[targetId];
+                    return newPeers;
+                  });
+                });
+              }
+            }
+          });
+        };
+
         peer.on('open', (id) => {
           console.log('My Peer ID:', id);
-
-          // Connect to others
-          setTimeout(() => {
-            possibleIds.forEach(targetId => {
-              if (targetId !== myId) {
-                // 1. Data Connection for metadata
-                const conn = peer.connect(targetId);
-                if (conn) setupDataConnection(conn);
-
-                // 2. Media Call
-                const call = peer.call(targetId, stream, { metadata: { userName, role } });
-                if (call) {
-                  callsRef.current[targetId] = call;
-                  call.on('stream', (remoteStream) => {
-                    handleNewStream(targetId, remoteStream, null, null);
-                  });
-                  call.on('close', () => {
-                    setPeers(prev => {
-                      const newPeers = { ...prev };
-                      delete newPeers[targetId];
-                      return newPeers;
-                    });
-                  });
-                  call.on('error', () => {
-                    setPeers(prev => {
-                      const newPeers = { ...prev };
-                      delete newPeers[targetId];
-                      return newPeers;
-                    });
-                  });
-                }
-              }
-            });
-          }, 1500);
+          connectToPeers();
+          // Periodically try to connect to catch late joiners
+          const connectInterval = setInterval(connectToPeers, 5000);
+          
+          // Store it somewhere to clear later
+          window._connectInterval = connectInterval;
         });
 
         peer.on('connection', (conn) => {
@@ -200,6 +201,7 @@ export default function GDRoom() {
 
     return () => {
       clearInterval(interval);
+      if (window._connectInterval) clearInterval(window._connectInterval);
       if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
       if (peerInstance.current) peerInstance.current.destroy();
       if (document.body.contains(script)) document.body.removeChild(script);
@@ -244,17 +246,32 @@ export default function GDRoom() {
 
   // Video component to handle streams dynamically
   const VideoTrack = ({ stream, name, role, isLocal }) => {
-    const ref = useRef(null);
+    const videoRef = useRef(null);
+
     useEffect(() => {
-      if (ref.current && stream) {
-        ref.current.srcObject = stream;
+      let isMounted = true;
+      if (videoRef.current && stream) {
+        videoRef.current.srcObject = stream;
+        
+        // Explicitly call play() to handle some browser policies
+        const playVideo = async () => {
+          try {
+            await videoRef.current.play();
+          } catch (err) {
+            console.warn("Autoplay prevented, waiting for interaction:", name);
+            // If autoplay fails, we can show a UI hint or just wait
+          }
+        };
+        
+        if (isMounted) playVideo();
       }
-    }, [stream]);
+      return () => { isMounted = false; };
+    }, [stream, name]);
 
     return (
       <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', borderRadius: '24px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
          <video 
-           ref={ref} 
+           ref={videoRef} 
            autoPlay 
            playsInline 
            muted={isLocal} 
@@ -264,6 +281,16 @@ export default function GDRoom() {
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: role === 'Host' ? '#db2777' : '#10b981', boxShadow: role === 'Host' ? '0 0 10px #db2777' : '0 0 10px #10b981' }}></div>
             <span style={{ fontWeight: '700', fontSize: '0.8rem', color: '#fff' }}>{name} {isLocal && '(You)'}</span>
          </div>
+         
+         {!isLocal && (
+            <button 
+              onClick={() => videoRef.current?.play()}
+              style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', padding: '5px', borderRadius: '50%', cursor: 'pointer', opacity: 0.6 }}
+              title="Click if video doesn't start"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 3l14 9-14 9V3z"></path></svg>
+            </button>
+         )}
       </div>
     );
   };
@@ -271,9 +298,8 @@ export default function GDRoom() {
   if (!meeting) return null;
 
   const activePeers = Object.entries(peers).filter(([_, data]) => data.stream);
-  const totalGridItems = 1 + activePeers.length; // 1 for local
+  const totalGridItems = 1 + activePeers.length;
 
-  // Dynamic grid styling based on participants
   let gridTemplateColumns = '1fr';
   if (totalGridItems === 2) gridTemplateColumns = '1fr 1fr';
   else if (totalGridItems >= 3 && totalGridItems <= 4) gridTemplateColumns = '1fr 1fr';
@@ -304,16 +330,15 @@ export default function GDRoom() {
         </div>
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+           <button onClick={() => window.location.reload()} className="btn-outline" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>Reconnect</button>
            <button onClick={handleEnd} className="btn-primary end-btn" style={{ background: '#ef4444', border: 'none', padding: '0.6rem 1.2rem', fontSize: '0.9rem', fontWeight: '700' }}>Leave Session</button>
         </div>
       </div>
 
       <div className="meeting-body" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '1.5rem', gap: '1.5rem', position: 'relative' }}>
         
-        {/* Background Decorative */}
         <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '60%', background: 'rgba(16, 185, 129, 0.03)', filter: 'blur(100px)', borderRadius: '50%', zIndex: 0 }}></div>
 
-        {/* Video Grid */}
         <div style={{ 
             flex: 1, 
             display: 'grid', 
@@ -326,7 +351,6 @@ export default function GDRoom() {
             alignContent: 'center'
         }}>
            
-           {/* Local Video */}
            <div style={{ width: '100%', height: '100%', maxHeight: '100%', aspectRatio: '16/9' }}>
                <VideoTrack 
                  stream={streamRef.current} 
@@ -336,7 +360,6 @@ export default function GDRoom() {
                />
            </div>
 
-           {/* Remote Videos */}
            {activePeers.map(([id, data]) => (
                <div key={id} style={{ width: '100%', height: '100%', maxHeight: '100%', aspectRatio: '16/9' }}>
                   <VideoTrack 
@@ -349,7 +372,6 @@ export default function GDRoom() {
            ))}
         </div>
 
-        {/* Controls */}
         <div className="controls-bar glass-panel" style={{ padding: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem', zIndex: 10, width: 'fit-content', margin: '0 auto', borderRadius: '100px' }}>
             <button onClick={toggleMute} style={{ width: '50px', height: '50px', borderRadius: '50%', border: 'none', background: isMuted ? '#ef4444' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                {isMuted ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path></svg> 
@@ -357,7 +379,7 @@ export default function GDRoom() {
             </button>
             <button onClick={toggleCamera} style={{ width: '50px', height: '50px', borderRadius: '50%', border: 'none', background: isCameraOff ? '#ef4444' : 'rgba(255,255,255,0.05)', color: '#fff', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                {isCameraOff ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
-                          : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>}
+                           : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>}
             </button>
         </div>
 
