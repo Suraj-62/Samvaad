@@ -93,8 +93,8 @@ export const bookHumanInterview = async (req, res) => {
     await availability.save();
     // ----------------------------
 
-    // Send Pending email to student
-    await sendPendingEmail(details);
+    // Send Pending email to student (Non-blocking)
+    sendPendingEmail(details);
 
     // Save booking to database as PENDING
     const newBooking = new HumanBooking({
@@ -113,12 +113,8 @@ export const bookHumanInterview = async (req, res) => {
     });
     await newBooking.save();
 
-    // Alert the specific interviewer
-    try {
-      await sendInterviewerAlertEmail(interviewer.email, { ...details, bookingId: newBooking._id });
-    } catch (alertError) {
-      console.error("Failed to notify interviewer:", alertError);
-    }
+    // Alert the specific interviewer (Non-blocking)
+    sendInterviewerAlertEmail(interviewer.email, { ...details, bookingId: newBooking._id });
 
     res.json({ success: true, slot: details.slot, meetingId: details.meetingId, meetingPassword: details.meetingPassword, status: 'pending' });
   } catch (error) {
@@ -288,11 +284,20 @@ export const getUserStats = async (req, res) => {
   try {
     const reports = await InterviewReport.find({ user: req.user._id }).sort({ createdAt: -1 });
     
+    // Calculate these first so they are always available
+    const interviewCount = await HumanBooking.countDocuments({ email: req.user.email, status: 'completed' });
+    const gdCount = await GroupDiscussion.countDocuments({ 
+      $or: [{ host: req.user._id }, { 'participants.email': req.user.email }],
+      status: 'completed'
+    });
+
     if (reports.length === 0) {
       return res.json({
         totalSessions: 0,
         avgScore: 0,
         accuracy: 0,
+        interviewCount,
+        gdCount,
         history: []
       });
     }
@@ -309,13 +314,6 @@ export const getUserStats = async (req, res) => {
       score: `${Math.round((r.scoresList.reduce((a, b) => a + b, 0) / r.scoresList.length) * 10)}/100`,
       status: "Completed"
     }));
-
-    // New detailed counts
-    const interviewCount = await HumanBooking.countDocuments({ email: req.user.email, status: 'completed' });
-    const gdCount = await GroupDiscussion.countDocuments({ 
-      $or: [{ host: req.user._id }, { 'participants.email': req.user.email }],
-      status: 'completed'
-    });
 
     res.json({
       totalSessions,
@@ -606,33 +604,25 @@ export const createGroupDiscussion = async (req, res) => {
 
     await group.save();
 
-    // Send emails to all participants
-    for (const email of emails) {
-      try {
-        await sendGroupInvitationEmail({
-          hostName: req.user.name,
-          email,
-          topic: group.topic,
-          meetingId,
-          meetingPassword
-        });
-      } catch (err) {
-        console.error(`Failed to send group invite to ${email}:`, err);
-      }
-    }
-
-    // Send email to the host (sender)
-    try {
-      await sendGroupHostEmail({
+    // Send emails to all participants (Non-blocking)
+    emails.forEach(email => {
+      sendGroupInvitationEmail({
         hostName: req.user.name,
-        email: req.user.email,
+        email,
         topic: group.topic,
         meetingId,
         meetingPassword
       });
-    } catch (err) {
-      console.error(`Failed to send group invite to host ${req.user.email}:`, err);
-    }
+    });
+
+    // Send email to the host (sender) (Non-blocking)
+    sendGroupHostEmail({
+      hostName: req.user.name,
+      email: req.user.email,
+      topic: group.topic,
+      meetingId,
+      meetingPassword
+    });
 
     res.json({ success: true, group });
   } catch (error) {

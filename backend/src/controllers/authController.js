@@ -98,11 +98,11 @@ export const registerUser = async (req, res) => {
     });
 
     if (user) {
-      // Send the standard welcome email for all new users
-      await sendWelcomeEmail(email, name);
+      // Send the standard welcome email for all new users (Non-blocking)
+      sendWelcomeEmail(email, name);
 
       if (role === 'interviewer') {
-        await sendRegistrationEmail(email, name);
+        sendRegistrationEmail(email, name);
       }
       
       res.status(201).json({
