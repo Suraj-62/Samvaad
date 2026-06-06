@@ -98,12 +98,12 @@ export const registerUser = async (req, res) => {
     });
 
     if (user) {
-      // Send the standard welcome email for all new users (Non-blocking)
-      sendWelcomeEmail(email, name);
-
+      // Send emails concurrently to prevent Vercel from freezing the background promises
+      const emailPromises = [sendWelcomeEmail(email, name)];
       if (role === 'interviewer') {
-        sendRegistrationEmail(email, name);
+        emailPromises.push(sendRegistrationEmail(email, name));
       }
+      await Promise.all(emailPromises);
       
       res.status(201).json({
         _id: user._id,

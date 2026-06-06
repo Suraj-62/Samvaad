@@ -93,9 +93,6 @@ export const bookHumanInterview = async (req, res) => {
     await availability.save();
     // ----------------------------
 
-    // Send Pending email to student (Non-blocking)
-    sendPendingEmail(details);
-
     // Save booking to database as PENDING
     const newBooking = new HumanBooking({
       name: details.name,
@@ -113,8 +110,11 @@ export const bookHumanInterview = async (req, res) => {
     });
     await newBooking.save();
 
-    // Alert the specific interviewer (Non-blocking)
-    sendInterviewerAlertEmail(interviewer.email, { ...details, bookingId: newBooking._id });
+    // Await emails to prevent Vercel serverless freezing
+    await Promise.all([
+      sendPendingEmail(details),
+      sendInterviewerAlertEmail(interviewer.email, { ...details, bookingId: newBooking._id })
+    ]);
 
     res.json({ success: true, slot: details.slot, meetingId: details.meetingId, meetingPassword: details.meetingPassword, status: 'pending' });
   } catch (error) {
@@ -604,25 +604,30 @@ export const createGroupDiscussion = async (req, res) => {
 
     await group.save();
 
-    // Send emails to all participants (Non-blocking)
-    emails.forEach(email => {
+    // Prepare email promises to prevent Vercel serverless freezing
+    const emailPromises = emails.map(email => 
       sendGroupInvitationEmail({
         hostName: req.user.name,
         email,
         topic: group.topic,
         meetingId,
         meetingPassword
-      });
-    });
+      })
+    );
 
-    // Send email to the host (sender) (Non-blocking)
-    sendGroupHostEmail({
-      hostName: req.user.name,
-      email: req.user.email,
-      topic: group.topic,
-      meetingId,
-      meetingPassword
-    });
+    // Add host email to the promise array
+    emailPromises.push(
+      sendGroupHostEmail({
+        hostName: req.user.name,
+        email: req.user.email,
+        topic: group.topic,
+        meetingId,
+        meetingPassword
+      })
+    );
+
+    // Await all emails
+    await Promise.all(emailPromises);
 
     res.json({ success: true, group });
   } catch (error) {
