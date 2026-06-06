@@ -13,15 +13,8 @@ export default function LandingPage() {
       {/* 1. Navbar */}
       <nav className="landing-nav animate-fade-in">
         <div className="logo-section">
-          <div className="logo-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 10v3" />
-              <path d="M6 6v11" />
-              <path d="M10 3v18" />
-              <path d="M14 8v7" />
-              <path d="M18 5v13" />
-              <path d="M22 10v3" />
-            </svg>
+          <div className="logo-icon" style={{ background: 'transparent', boxShadow: 'none', width: 'auto', height: 'auto' }}>
+            <img src="/logo.png" alt="Samvaad Logo" style={{ width: '56px', height: '56px', borderRadius: '12px', transform: 'scale(1.3)' }} />
           </div>
           <span className="logo-text">Samvaad</span>
         </div>
@@ -60,35 +53,22 @@ export default function LandingPage() {
           </div>
         </div>
         
-        {/* CSS Mockup of Dashboard */}
+        {/* Futuristic AI Core Visual */}
         <div className="hero-visual-side animate-fade-in delay-300">
-          <div className="dashboard-mock float-anim">
-            <div className="dashboard-header">
-              <div className="mac-dot dot-red"></div>
-              <div className="mac-dot dot-yellow"></div>
-              <div className="mac-dot dot-green"></div>
+          <div className="ai-orb-container float-anim">
+            <div className="hud-grid"></div>
+            <div className="data-stream"></div>
+            <div className="ai-ring ai-ring-1"></div>
+            <div className="ai-ring ai-ring-2"></div>
+            <div className="ai-ring ai-ring-3"></div>
+            <div className="ai-hologram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%', color: 'var(--highlight-color)' }}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                <path d="M2 12h20"></path>
+              </svg>
             </div>
-            <div className="dashboard-body">
-              <div className="mock-sidebar">
-                <div className="mock-sidebar-item" style={{ background: 'var(--highlight-color)', opacity: 0.3 }}></div>
-                <div className="mock-sidebar-item"></div>
-                <div className="mock-sidebar-item"></div>
-                <div className="mock-sidebar-item" style={{ marginTop: 'auto' }}></div>
-              </div>
-              <div className="mock-content">
-                <div className="mock-card">
-                  <div className="mock-line w-full"></div>
-                  <div className="mock-line w-3-4"></div>
-                  <div className="mock-line w-1-2"></div>
-                </div>
-                <div className="mock-card" style={{ flex: 1 }}>
-                  <div style={{ color: 'var(--highlight-color)', fontSize: '0.8rem', fontWeight: 'bold' }}>Session Active...</div>
-                  <div className="mock-waveform">
-                    {[...Array(15)].map((_, i) => <div key={i} className="mock-bar"></div>)}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <div className="scanning-bar"></div>
           </div>
           
           <div className="floating-stat stat-1 float-anim" style={{ animationDelay: '1s' }}>
@@ -96,18 +76,18 @@ export default function LandingPage() {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <div className="stat-text">
-              <h5>98/100</h5>
-              <p>Technical Rating</p>
+              <h5>99.8%</h5>
+              <p>AI Accuracy</p>
             </div>
           </div>
           
           <div className="floating-stat stat-2 float-anim" style={{ animationDelay: '2s' }}>
-            <div className="stat-icon" style={{ color: 'var(--purple-glow)', background: 'rgba(139,92,246,0.1)' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+            <div className="stat-icon" style={{ color: 'var(--accent-color)', background: 'rgba(139,92,246,0.1)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
             </div>
             <div className="stat-text">
               <h5>Real-time</h5>
-              <p>Behavioral Insights</p>
+              <p>Expert Analysis</p>
             </div>
           </div>
         </div>
@@ -282,28 +262,61 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* 8. Footer CTA */}
+      {/* 8. Footer CTA & Links */}
       <footer className="premium-footer">
-        <div className="footer-content">
-          <h2>Ready to unlock your potential?</h2>
-          <p>Join thousands of candidates who cracked their dream companies with Samvaad.</p>
-          <button className="btn-primary" onClick={() => navigate('/login')} style={{ padding: '1rem 3rem', fontSize: '1.25rem' }}>
-            Get Started for Free
-          </button>
+        <div className="ambient-glow glow-3" style={{ bottom: '0', left: '50%', transform: 'translateX(-50%)', width: '1000px', height: '500px' }}></div>
+        
+        <div className="footer-cta-box animate-fade-in">
+          <div className="footer-content">
+            <h2>Ready to unlock your <span className="text-gradient">potential?</span></h2>
+            <p>Join thousands of candidates who cracked their dream companies with Samvaad's AI and Expert mock interviews.</p>
+            <button className="btn-primary" onClick={() => navigate('/login')} style={{ padding: '1rem 3rem', fontSize: '1.25rem' }}>
+              Get Started for Free
+            </button>
+          </div>
         </div>
         
-        <div className="footer-bottom">
-          <div className="logo-section" style={{ opacity: 0.7 }}>
-            <span className="logo-text" style={{ fontSize: '1.2rem' }}>Samvaad</span>
+        <div className="footer-grid">
+          <div className="footer-col">
+            <div className="logo-section" style={{ marginBottom: '1.5rem' }}>
+              <div className="logo-icon" style={{ background: 'transparent', boxShadow: 'none', width: 'auto', height: 'auto' }}>
+                <img src="/logo.png" alt="Samvaad Logo" style={{ width: '56px', height: '56px', borderRadius: '12px', transform: 'scale(1.3)' }} />
+              </div>
+              <span className="logo-text">Samvaad</span>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', maxWidth: '300px' }}>
+              Master your interviews with professional feedback, real-time behavioral insights, and AI-driven analytics.
+            </p>
           </div>
-          <div style={{ display: 'flex', gap: '2rem' }}>
-            <a href="mailto:samvad602@gmail.com">Email</a>
+          <div className="footer-col">
+            <h4>Product</h4>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it Works</a>
+            <a href="#pricing">Pricing</a>
+            <a href="/login">Sign In</a>
+          </div>
+          <div className="footer-col">
+            <h4>Resources</h4>
+            <a href="#">Blog</a>
+            <a href="#">Interview Guides</a>
+            <a href="#">Resume Templates</a>
+            <a href="#">Community</a>
+          </div>
+          <div className="footer-col">
+            <h4>Connect</h4>
+            <a href="mailto:samvad602@gmail.com">Contact Us</a>
             <a href="https://www.linkedin.com/in/suraj-kumar-mishra-30112527b" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
+            <a href="#">Twitter / X</a>
           </div>
+        </div>
+
+        <div className="footer-bottom">
           <div style={{ color: 'var(--text-secondary)' }}>
             © {new Date().getFullYear()} Samvaad. All rights reserved.
+          </div>
+          <div style={{ display: 'flex', gap: '2rem' }}>
+            <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Privacy Policy</a>
+            <a href="#" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>Terms of Service</a>
           </div>
         </div>
       </footer>

@@ -193,17 +193,24 @@ export default function SignIn() {
         <div className="auth-visual-side">
           <div className="auth-scanning-line"></div>
           <div className="auth-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <div className="logo-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M2 10v3" />
-                <path d="M6 6v11" />
-                <path d="M10 3v18" />
-                <path d="M14 8v7" />
-                <path d="M18 5v13" />
-                <path d="M22 10v3" />
-              </svg>
+            <div className="logo-icon" style={{ background: 'transparent', boxShadow: 'none', width: 'auto', height: 'auto' }}>
+              <img src="/logo.png" alt="Samvaad Logo" style={{ width: '48px', height: '48px', borderRadius: '12px', transform: 'scale(1.2)' }} />
             </div>
             <span className="logo-text">Samvaad</span>
+          </div>
+
+          {/* Holographic Background */}
+          <div className="ai-orb-container" style={{ position: 'absolute', top: '45%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.15, pointerEvents: 'none' }}>
+            <div className="ai-ring ai-ring-1"></div>
+            <div className="ai-ring ai-ring-2"></div>
+            <div className="ai-ring ai-ring-3"></div>
+            <div className="ai-hologram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ width: '100%', height: '100%', color: 'var(--highlight-color)' }}>
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                <path d="M2 12h20"></path>
+              </svg>
+            </div>
           </div>
           
           <div className="auth-visual-content">
